@@ -9,6 +9,8 @@ const Account = () => import("../views/Admin/Account.vue");
 const Department = () => import("../views/Admin/Department.vue");
 const Position = () => import("../views/Admin/Position.vue");
 const ClassRoom = () => import("../views/Admin/ClassRoom.vue");
+const Device = () => import("../views/Admin/Device.vue");
+const Modeling = () => import("../views/Admin/Modeling.vue");
 
 const routes = [
   { path: "/", name: "login", component: Login },
@@ -47,6 +49,16 @@ const routes = [
         path: "position",
         name: "Position",
         component: Position,
+      },
+      {
+        path: "device",
+        name: "Device",
+        component: Device,
+      },
+      {
+        path: "model",
+        name: "Modeling",
+        component: Modeling,
       },
       {
         path: "classroom",

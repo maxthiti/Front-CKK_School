@@ -75,8 +75,8 @@
                     <ul v-show="isExpanded && isPersonnelOpen" class="ml-4 mt-2 space-y-2">
                         <li>
                             <router-link to="/home/teacher"
-                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-base-200 transition-colors"
-                                :class="{ 'bg-primary/20 text-primary': isActive('/home/teacher') }">
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/teacher')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -88,8 +88,8 @@
 
                         <li>
                             <router-link to="/home/student"
-                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-base-200 transition-colors"
-                                :class="{ 'bg-primary/20 text-primary': isActive('/home/student') }">
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/student')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -126,8 +126,8 @@
                     <ul v-show="isExpanded && isStructureOpen" class="ml-4 mt-2 space-y-2">
                         <li>
                             <router-link to="/home/department"
-                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-base-200 transition-colors"
-                                :class="{ 'bg-primary/20 text-primary': isActive('/home/department') }">
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/department')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -139,8 +139,8 @@
 
                         <li>
                             <router-link to="/home/position"
-                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-base-200 transition-colors"
-                                :class="{ 'bg-primary/20 text-primary': isActive('/home/position') }">
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/position')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -152,14 +152,65 @@
 
                         <li>
                             <router-link to="/home/classroom"
-                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-base-200 transition-colors"
-                                :class="{ 'bg-primary/20 text-primary': isActive('/home/classroom') }">
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/classroom')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
                                 <span class="text-sm">จัดการห้องเรียน</span>
+                            </router-link>
+                        </li>
+                    </ul>
+                </li>
+
+                <li>
+                    <div @click="toggleEquipment"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-base-200 transition-colors cursor-pointer relative group"
+                        :class="{ 'bg-primary text-primary-content': isEquipmentActive }">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                        </svg>
+                        <span v-show="isExpanded" class="font-medium whitespace-nowrap">จัดการอุปกรณ์</span>
+                        <svg v-show="isExpanded" xmlns="http://www.w3.org/2000/svg"
+                            :class="['h-4 w-4 ml-auto transition-transform', isEquipmentOpen ? 'rotate-180' : '']"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+
+                        <div v-show="!isExpanded"
+                            class="absolute left-full ml-2 px-3 py-2 bg-base-300 text-base-content rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                            จัดการอุปกรณ์
+                        </div>
+                    </div>
+
+                    <ul v-show="isExpanded && isEquipmentOpen" class="ml-4 mt-2 space-y-2">
+                        <li>
+                            <router-link to="/home/device"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/device')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                <span class="text-sm">จัดการอุปกรณ์</span>
+                            </router-link>
+                        </li>
+
+                        <li>
+                            <router-link to="/home/model"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/model')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                                </svg>
+                                <span class="text-sm">จัดการโมเดล</span>
                             </router-link>
                         </li>
                     </ul>
@@ -198,6 +249,7 @@ const isExpanded = ref(true)
 const isPinned = ref(true)
 const isPersonnelOpen = ref(false)
 const isStructureOpen = ref(false)
+const isEquipmentOpen = ref(false)
 const isMobileMenuOpen = ref(false)
 
 const isActive = (path) => {
@@ -212,6 +264,14 @@ const isStructureActive = computed(() => {
     return route.path === '/home/department' || route.path === '/home/position' || route.path === '/home/classroom'
 })
 
+const isEquipmentActive = computed(() => {
+    return route.path === '/home/device' || route.path === '/home/model'
+})
+
+const submenuClass = (path) => {
+    return isActive(path) ? 'bg-warning text-warning-content' : ''
+}
+
 const toggleSidebar = () => {
     isPinned.value = !isPinned.value
     isExpanded.value = isPinned.value
@@ -223,6 +283,10 @@ const togglePersonnel = () => {
 
 const toggleStructure = () => {
     isStructureOpen.value = !isStructureOpen.value
+}
+
+const toggleEquipment = () => {
+    isEquipmentOpen.value = !isEquipmentOpen.value
 }
 
 const openMobileMenu = () => {

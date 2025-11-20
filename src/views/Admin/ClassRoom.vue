@@ -25,16 +25,20 @@
             </div>
         </div>
 
-        <CardView :classrooms="filteredClassrooms" :loading="loading" @delete="openDeleteConfirm" />
+        <CardView :classrooms="filteredClassrooms" :loading="loading" @delete="openDeleteConfirm"
+            @edit="openUpdateModal" />
 
         <CreateModal ref="createModalRef" :classrooms="classrooms" :teachers="teachers"
             :availableGrades="availableGrades" @success="handleCreateSuccess" />
+
+        <UpdateModal ref="updateModalRef" :teachers="teachers" @success="handleUpdateSuccess" />
     </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import CreateModal from '../../components/ClassRoom/Create.vue'
+import UpdateModal from '../../components/ClassRoom/Update.vue'
 import CardView from '../../components/ClassRoom/CardView.vue'
 import { ClassRoomService } from '../../api/class-room'
 import { TeacherService } from '../../api/teacher'
@@ -46,6 +50,7 @@ const classrooms = ref([])
 const teachers = ref([])
 const loading = ref(false)
 const createModalRef = ref(null)
+const updateModalRef = ref(null)
 const selectedGrade = ref('ม.1')
 
 const availableGrades = [
@@ -91,8 +96,25 @@ const openCreateModal = () => {
     createModalRef.value.openModal()
 }
 
+const openUpdateModal = (classroom) => {
+    updateModalRef.value.openModal(classroom)
+}
+
 const handleCreateSuccess = async (formData) => {
     try {
+        if (!formData.adviser) {
+            const { default: Swal } = await import('sweetalert2')
+            Swal.fire({
+                icon: 'warning',
+                title: 'กรุณาเลือกครูประจำชั้น',
+                confirmButtonColor: '#2563eb',
+                didOpen: () => {
+                    document.getElementById('app').removeAttribute('aria-hidden')
+                }
+            })
+            return
+        }
+
         await classRoomService.createClassRoom({
             grade: formData.grade,
             classroom: formData.classroom,
@@ -115,7 +137,38 @@ const handleCreateSuccess = async (formData) => {
         Swal.fire({
             icon: 'error',
             title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถเพิ่มห้องเรียนได้',
+            text: error.response?.data?.error || 'ไม่สามารถเพิ่มห้องเรียนได้',
+            confirmButtonColor: '#2563eb',
+            didOpen: () => {
+                document.getElementById('app').removeAttribute('aria-hidden')
+            }
+        })
+    }
+}
+
+const handleUpdateSuccess = async (formData) => {
+    try {
+        await classRoomService.updateClassRoom(formData.id, {
+            adviser: formData.adviser
+        })
+        await fetchClassRooms()
+        const { default: Swal } = await import('sweetalert2')
+        Swal.fire({
+            icon: 'success',
+            title: 'แก้ไขห้องเรียนสำเร็จ',
+            showConfirmButton: false,
+            timer: 1500,
+            didOpen: () => {
+                document.getElementById('app').removeAttribute('aria-hidden')
+            }
+        })
+    } catch (error) {
+        console.error('Update classroom error:', error)
+        const { default: Swal } = await import('sweetalert2')
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: 'ไม่สามารถแก้ไขห้องเรียนได้',
             confirmButtonColor: '#2563eb',
             didOpen: () => {
                 document.getElementById('app').removeAttribute('aria-hidden')

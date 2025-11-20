@@ -64,4 +64,28 @@ export class ClassRoomService {
       throw error;
     }
   }
+
+  async updateClassRoom(id, data) {
+    try {
+      const params = new URLSearchParams();
+      params.append("adviser", data.adviser);
+
+      let config = {
+        method: "patch",
+        maxBodyLength: Infinity,
+        url: `${this.baseUrl}classroom/${id}`,
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Bearer ${this.token}`,
+        },
+        data: params,
+      };
+
+      const response = await axios.request(config);
+      return response.data;
+    } catch (error) {
+      console.error("Update classroom error:", error);
+      throw error;
+    }
+  }
 }
