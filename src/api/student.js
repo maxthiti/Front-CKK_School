@@ -3,6 +3,7 @@ import axios from "axios";
 export class StudentService {
   constructor() {
     this.baseUrl = import.meta.env.VITE_APP_BASE_URL;
+    this.imgBaseUrl = import.meta.env.VITE_APP_IMG_URL;
     this.token = localStorage.getItem("token");
   }
 

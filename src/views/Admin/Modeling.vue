@@ -71,7 +71,6 @@
         <div v-else>
             <ModelingTable :data="modelings" :page="currentPage" :limit="filters.limit" />
 
-            <!-- Pagination -->
             <div class="flex flex-col items-center gap-4 mt-6">
                 <div class="text-sm text-base-content/60">
                     ทั้งหมด {{ totalItems }} รายการ (หน้า {{ currentPage }} / {{ totalPages }})

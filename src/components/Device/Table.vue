@@ -8,12 +8,14 @@
                     <th>IP Address</th>
                     <th>สถานที่</th>
                     <th>เวลาปัจจุบัน</th>
+                    <th>เข้า/ออก</th>
+                    <th>สถานะ</th>
                     <th class="text-center">จัดการ</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-if="devices.length === 0">
-                    <td colspan="6" class="text-center py-8 text-base-content/60">
+                    <td colspan="8" class="text-center py-8 text-base-content/60">
                         ไม่พบข้อมูลอุปกรณ์
                     </td>
                 </tr>
@@ -23,6 +25,8 @@
                     <td>{{ device.ipaddress }}</td>
                     <td>{{ device.location }}</td>
                     <td>{{ formatDateTime(device.current_time) }}</td>
+                    <td>{{ formatGateType(device.gate_type) }}</td>
+                    <td>{{ formatStatus(device.status) }}</td>
                     <td class="text-center">
                         <div class="flex gap-2 justify-center">
                             <button @click="$emit('edit', device)" class="btn btn-sm btn-warning btn-outline">
@@ -75,6 +79,24 @@ const formatDateTime = (dateTimeString) => {
     } catch (error) {
         return dateTimeString
     }
+}
+
+const formatGateType = (gateType) => {
+    if (!gateType) return '-'
+    const s = String(gateType).toLowerCase()
+    if (s === 'in' || s === 'enter' || s === 'entry') return 'เข้า'
+    if (s === 'out' || s === 'exit') return 'ออก'
+    return gateType
+}
+
+const formatStatus = (status) => {
+    if (status === undefined || status === null || status === '') return '-'
+    if (status === true) return 'ออนไลน์'
+    if (status === false) return 'ออฟไลน์'
+    const s = String(status).toLowerCase()
+    if (s === 'online' || s === 'active') return 'ออนไลน์'
+    if (s === 'offline' || s === 'inactive') return 'ออฟไลน์'
+    return String(status)
 }
 </script>
 

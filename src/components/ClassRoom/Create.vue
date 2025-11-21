@@ -1,6 +1,6 @@
 <template>
     <dialog ref="modalRef" class="modal">
-        <div class="modal-box">
+        <div class="modal-box overflow-visible">
             <h3 class="font-bold text-lg mb-4">เพิ่มห้องเรียน</h3>
             <form @submit.prevent="handleSubmit" class="space-y-4">
 
@@ -12,7 +12,7 @@
                         @change="handleGradeChange">
                         <option value="">เลือกชั้นปี</option>
                         <option v-for="grade in availableGrades" :key="grade.value" :value="grade.value">{{ grade.label
-                        }}</option>
+                            }}</option>
                     </select>
                 </div>
 
@@ -26,15 +26,27 @@
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">ครูประจำห้อง</span>
+                        <span class="label-text">ครูประจำชั้น</span>
                     </label>
-                    <select v-model="formData.adviser" class="select select-bordered" required>
-                        <option value="">เลือกครูประจำห้อง</option>
-                        <option v-for="teacher in filteredTeachers" :key="teacher._id || teacher.id"
-                            :value="teacher._id || teacher.id">
-                            {{ teacher.name }} ({{ teacher.position }})
-                        </option>
-                    </select>
+                    <div class="relative z-[9999]" ref="adviserBoxRef">
+                        <input ref="adviserInputRef" v-model="adviserQuery" type="text"
+                            class="input input-bordered w-full" placeholder="พิมพ์เพื่อค้นหาและเลือกครู..."
+                            @focus="adviserOpen = true" @input="adviserOpen = true" />
+                        <button v-if="formData.adviser" type="button"
+                            class="btn btn-ghost btn-xs absolute right-2 top-2" @click="clearAdviser">ลบ</button>
+                        <ul v-if="adviserOpen"
+                            class="bg-base-100 rounded-box shadow border absolute z-[9999] bottom-full left-0 mb-2 pt-3 w-full max-h-[60vh] overflow-y-auto overflow-x-hidden flex flex-col columns-1">
+                            <li v-if="!filteredTeachersByAdviserQuery.length" class="px-3 py-2 text-sm opacity-70">
+                                ไม่พบครูที่ตรงกับคำค้นหา
+                            </li>
+                            <li v-for="teacher in filteredTeachersByAdviserQuery" :key="teacher._id || teacher.id">
+                                <button type="button" class="w-full text-left px-3 py-2 hover:bg-base-200"
+                                    @click="selectAdviser(teacher)">
+                                    {{ teacher.name }} ({{ teacher.position }})
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div class="modal-action">
@@ -50,7 +62,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
     classrooms: {
@@ -75,6 +87,11 @@ const formData = ref({
     adviser: ''
 })
 
+const adviserQuery = ref('')
+const adviserOpen = ref(false)
+const adviserBoxRef = ref(null)
+const adviserInputRef = ref(null)
+
 const emit = defineEmits(['success'])
 
 const filteredTeachers = computed(() => {
@@ -84,6 +101,47 @@ const filteredTeachers = computed(() => {
         'ครู'
     ]
     return props.teachers.filter(t => allowedPositions.includes(t.position))
+})
+
+const filteredTeachersByAdviserQuery = computed(() => {
+    const q = adviserQuery.value.trim().toLowerCase()
+    if (!q) return filteredTeachers.value
+    return filteredTeachers.value.filter(t => {
+        const name = (t.name || '').toLowerCase()
+        const position = (t.position || '').toLowerCase()
+        return name.includes(q) || position.includes(q)
+    })
+})
+
+const selectedTeacher = computed(() => {
+    return filteredTeachers.value.find(t => (t._id || t.id) === formData.value.adviser) || null
+})
+
+const selectAdviser = (teacher) => {
+    formData.value.adviser = teacher._id || teacher.id
+    adviserQuery.value = `${teacher.name} (${teacher.position})`
+    adviserOpen.value = false
+}
+
+const clearAdviser = () => {
+    formData.value.adviser = ''
+    adviserQuery.value = ''
+}
+
+let _onDocClick = null
+onMounted(() => {
+    _onDocClick = (e) => {
+        if (!adviserOpen.value) return
+        const box = adviserBoxRef.value
+        if (box && !box.contains(e.target)) {
+            adviserOpen.value = false
+        }
+    }
+    document.addEventListener('click', _onDocClick)
+})
+
+onBeforeUnmount(() => {
+    if (_onDocClick) document.removeEventListener('click', _onDocClick)
 })
 
 const nextClassroomNumber = computed(() => {
@@ -109,6 +167,8 @@ const openModal = () => {
         classroom: '',
         adviser: ''
     }
+    adviserQuery.value = ''
+    adviserOpen.value = false
     modalRef.value.showModal()
 }
 
@@ -119,9 +179,15 @@ const closeModal = () => {
         classroom: '',
         adviser: ''
     }
+    adviserQuery.value = ''
+    adviserOpen.value = false
 }
 
 const handleSubmit = async () => {
+    if (!formData.value.adviser) {
+        alert('กรุณาเลือกครูประจำชั้น')
+        return
+    }
     emit('success', formData.value)
     closeModal()
 }

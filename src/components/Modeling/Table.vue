@@ -52,7 +52,6 @@
         </table>
     </div>
 
-    <!-- Mobile View -->
     <div class="lg:hidden space-y-4">
         <div v-if="data.length === 0" class="text-center py-8 text-base-content/60 bg-base-100 rounded-lg shadow-lg">
             ไม่พบข้อมูล

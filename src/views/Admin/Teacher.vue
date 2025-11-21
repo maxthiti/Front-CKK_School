@@ -99,7 +99,7 @@ const filterDepartment = ref('')
 const filterPosition = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 5
-const imageBaseUrl = import.meta.env.VITE_APP_BASE_URL + 'uploaded/'
+const imageBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
 const updateModalRef = ref(null)
 const createModalRef = ref(null)
 

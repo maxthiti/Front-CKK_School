@@ -111,7 +111,7 @@ const selectedClassroom = ref('1')
 const searchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 5
-const imageBaseUrl = import.meta.env.VITE_APP_BASE_URL + 'uploads/'
+const imageBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
 
 const availableGrades = computed(() => {
     const grades = [...new Set(classrooms.value.map(c => c.grade))]
@@ -175,7 +175,6 @@ const handleSearch = () => {
 }
 
 const handleGradeChange = () => {
-    // เมื่อเปลี่ยนชั้นปี ให้เลือกห้องแรกที่มีในชั้นนั้น
     if (availableClassrooms.value.length > 0) {
         selectedClassroom.value = availableClassrooms.value[0]
     }
@@ -187,7 +186,6 @@ const fetchClassRooms = async () => {
         const response = await classRoomService.getClassRooms()
         if (response.message === 'Success' && response.data) {
             classrooms.value = response.data
-            // ตั้งค่าเริ่มต้น
             if (availableGrades.value.length > 0) {
                 selectedGrade.value = availableGrades.value[0]
                 if (availableClassrooms.value.length > 0) {

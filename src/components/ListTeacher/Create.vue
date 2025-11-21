@@ -1,6 +1,6 @@
 <template>
     <dialog ref="modalRef" class="modal">
-        <div class="modal-box max-w-2xl">
+        <div class="modal-box max-w-2xl overflow-visible">
             <h3 class="font-bold text-lg mb-4">เพิ่มอาจารย์</h3>
 
             <form @submit.prevent="handleSubmit" class="space-y-4">
@@ -78,25 +78,54 @@
                         <input v-model="formData.last_name" type="text" class="input input-bordered" required />
                     </div>
 
-                    <div class="form-control">
+                    <div class="form-control relative z-[100]">
                         <label class="label">
                             <span class="label-text">ตำแหน่ง</span>
                         </label>
-                        <select v-model="formData.position" class="select select-bordered" required>
-                            <option value="">เลือกตำแหน่ง</option>
-                            <option v-for="pos in positions" :key="pos._id" :value="pos.name">{{ pos.name }}</option>
-                        </select>
+                        <div class="relative" ref="positionBoxRef">
+                            <input ref="positionInputRef" v-model="positionQuery" type="text"
+                                class="input input-bordered w-full" placeholder="พิมพ์เพื่อค้นหาและเลือกตำแหน่ง..."
+                                @focus="positionOpen = true" @input="positionOpen = true" required />
+                            <button v-if="formData.position" type="button"
+                                class="btn btn-ghost btn-xs absolute right-2 top-2" @click="clearPosition">ลบ</button>
+                            <ul v-if="positionOpen"
+                                class="bg-base-100 rounded-box shadow-lg border absolute z-[1000] top-full left-0 mt-2 pt-1 w-full max-h-60 overflow-y-auto">
+                                <li v-if="!filteredPositions.length" class="px-3 py-2 text-sm opacity-70">
+                                    ไม่พบตำแหน่งที่ตรงกับคำค้นหา
+                                </li>
+                                <li v-for="pos in filteredPositions" :key="pos._id" class="block">
+                                    <button type="button" class="w-full text-left px-3 py-2 hover:bg-base-200 block"
+                                        @click="selectPosition(pos)">
+                                        {{ pos.name }}
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
 
-                    <div class="form-control">
+                    <div class="form-control relative z-[99]">
                         <label class="label">
                             <span class="label-text">แผนก</span>
                         </label>
-                        <select v-model="formData.department" class="select select-bordered" required>
-                            <option value="">เลือกแผนก</option>
-                            <option v-for="dept in departments" :key="dept._id" :value="dept.name">{{ dept.name }}
-                            </option>
-                        </select>
+                        <div class="relative" ref="departmentBoxRef">
+                            <input ref="departmentInputRef" v-model="departmentQuery" type="text"
+                                class="input input-bordered w-full" placeholder="พิมพ์เพื่อค้นหาและเลือกแผนก..."
+                                @focus="departmentOpen = true" @input="departmentOpen = true" required />
+                            <button v-if="formData.department" type="button"
+                                class="btn btn-ghost btn-xs absolute right-2 top-2" @click="clearDepartment">ลบ</button>
+                            <ul v-if="departmentOpen"
+                                class="bg-base-100 rounded-box shadow-lg border absolute z-[999] top-full left-0 mt-2 pt-1 w-full max-h-60 overflow-y-auto">
+                                <li v-if="!filteredDepartments.length" class="px-3 py-2 text-sm opacity-70">
+                                    ไม่พบแผนกที่ตรงกับคำค้นหา
+                                </li>
+                                <li v-for="dept in filteredDepartments" :key="dept._id" class="block">
+                                    <button type="button" class="w-full text-left px-3 py-2 hover:bg-base-200 block"
+                                        @click="selectDepartment(dept)">
+                                        {{ dept.name }}
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
 
                     <div class="form-control">
@@ -124,13 +153,24 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 
 const modalRef = ref(null)
 const loading = ref(false)
 const previewImage = ref('')
 const fileName = ref('')
 const fileError = ref('')
+
+const positionQuery = ref('')
+const positionOpen = ref(false)
+const positionBoxRef = ref(null)
+const positionInputRef = ref(null)
+
+const departmentQuery = ref('')
+const departmentOpen = ref(false)
+const departmentBoxRef = ref(null)
+const departmentInputRef = ref(null)
+
 const formData = ref({
     userid: '',
     pre_name: '',
@@ -155,6 +195,75 @@ const props = defineProps({
 
 const emit = defineEmits(['success'])
 
+const filteredPositions = computed(() => {
+    const q = positionQuery.value.trim().toLowerCase()
+    if (!q) return props.positions
+    return props.positions.filter(pos => {
+        const name = (pos.name || '').toLowerCase()
+        return name.includes(q)
+    })
+})
+
+const filteredDepartments = computed(() => {
+    const q = departmentQuery.value.trim().toLowerCase()
+    if (!q) return props.departments
+    return props.departments.filter(dept => {
+        const name = (dept.name || '').toLowerCase()
+        return name.includes(q)
+    })
+})
+
+const selectPosition = (pos) => {
+    formData.value.position = pos.name
+    positionQuery.value = pos.name
+    positionOpen.value = false
+}
+
+const selectDepartment = (dept) => {
+    formData.value.department = dept.name
+    departmentQuery.value = dept.name
+    departmentOpen.value = false
+}
+
+const clearPosition = () => {
+    formData.value.position = ''
+    positionQuery.value = ''
+    positionOpen.value = false
+}
+
+const clearDepartment = () => {
+    formData.value.department = ''
+    departmentQuery.value = ''
+    departmentOpen.value = false
+}
+
+let _onDocClickPosition = null
+let _onDocClickDepartment = null
+
+onMounted(() => {
+    _onDocClickPosition = (e) => {
+        if (!positionOpen.value) return
+        const box = positionBoxRef.value
+        if (box && !box.contains(e.target)) {
+            positionOpen.value = false
+        }
+    }
+    _onDocClickDepartment = (e) => {
+        if (!departmentOpen.value) return
+        const box = departmentBoxRef.value
+        if (box && !box.contains(e.target)) {
+            departmentOpen.value = false
+        }
+    }
+    document.addEventListener('click', _onDocClickPosition)
+    document.addEventListener('click', _onDocClickDepartment)
+})
+
+onBeforeUnmount(() => {
+    if (_onDocClickPosition) document.removeEventListener('click', _onDocClickPosition)
+    if (_onDocClickDepartment) document.removeEventListener('click', _onDocClickDepartment)
+})
+
 const openModal = () => {
     formData.value = {
         userid: '',
@@ -169,6 +278,10 @@ const openModal = () => {
     previewImage.value = ''
     fileName.value = ''
     fileError.value = ''
+    positionQuery.value = ''
+    departmentQuery.value = ''
+    positionOpen.value = false
+    departmentOpen.value = false
     modalRef.value.showModal()
 }
 
@@ -187,6 +300,10 @@ const closeModal = () => {
     previewImage.value = ''
     fileName.value = ''
     fileError.value = ''
+    positionQuery.value = ''
+    departmentQuery.value = ''
+    positionOpen.value = false
+    departmentOpen.value = false
 }
 
 const handleFileChange = (event) => {
@@ -194,15 +311,13 @@ const handleFileChange = (event) => {
     fileError.value = ''
 
     if (file) {
-        // Validate file type (JPG only)
         if (!file.type.match('image/jpeg') && !file.type.match('image/jpg')) {
             fileError.value = 'กรุณาเลือกไฟล์ JPG เท่านั้น'
             event.target.value = ''
             return
         }
 
-        // Validate file size (max 70KB)
-        const maxSize = 70 * 1024 // 70KB in bytes
+        const maxSize = 70 * 1024 
         if (file.size > maxSize) {
             fileError.value = `ขนาดไฟล์ใหญ่เกินไป (${(file.size / 1024).toFixed(2)}KB) กรุณาเลือกไฟล์ไม่เกิน 70KB`
             event.target.value = ''
