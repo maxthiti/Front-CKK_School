@@ -1,0 +1,141 @@
+<template>
+    <div>
+        <button @click="openModal" class="btn btn-primary btn-xs">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+        </button>
+
+        <dialog ref="modal" class="modal">
+            <div class="modal-box max-w-3xl">
+                <h3 class="font-bold text-lg mb-4">รายละเอียด Modeling</h3>
+
+                <div class="bg-base-200 rounded-lg p-4 mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <span class="text-sm text-base-content/60">ชื่อ-สกุล:</span>
+                            <p class="font-medium">{{ item.name }}</p>
+                        </div>
+                        <div>
+                            <span class="text-sm text-base-content/60">รหัส:</span>
+                            <p class="font-medium">{{ item.userid }}</p>
+                        </div>
+                        <div>
+                            <span class="text-sm text-base-content/60">ตำแหน่ง:</span>
+                            <p class="font-medium">{{ item.position }}</p>
+                        </div>
+                        <div>
+                            <span class="text-sm text-base-content/60">
+                                <span v-if="item.role === 'student'">ห้องเรียน:</span>
+                                <span v-else>แผนก:</span>
+                            </span>
+                            <p class="font-medium">
+                                <span v-if="item.role === 'student'">
+                                    {{ item.grade }} / {{ item.classroom }}
+                                </span>
+                                <span v-else>
+                                    {{ item.department || '-' }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h4 class="font-semibold">รายการ Modeling ({{ item.modeling.length }} รายการ)</h4>
+                    <div class="overflow-x-auto">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">ลำดับ</th>
+                                    <th>ตำแหน่งอุปกรณ์</th>
+                                    <th class="text-center">สถานะ</th>
+                                    <th class="text-center">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(model, idx) in item.modeling" :key="idx">
+                                    <td class="text-center">{{ idx + 1 }}</td>
+                                    <td>{{ model.device.location }}</td>
+                                    <td class="text-center">
+                                        <div class="flex items-center justify-center gap-2">
+                                            <div :class="[
+                                                'w-3 h-3 rounded-full',
+                                                statusColorClass(model.status)
+                                            ]"></div>
+                                            <span class="text-xs">{{ statusLabel(model.status) }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="flex justify-center gap-1">
+                                            <ReModel v-if="model.status === 0" :modeling-id="model.modeling_id"
+                                                :location="model.device.location" @updated="handleUpdated"
+                                                :before-action="closeModal" />
+                                            <DeleteModeling :modeling-id="model.modeling_id" :name="item.name"
+                                                :location="model.device.location" @deleted="handleUpdated"
+                                                :before-action="closeModal" />
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="modal-action">
+                    <button @click="closeModal" class="btn">ปิด</button>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button type="button" @click="closeModal">close</button>
+            </form>
+        </dialog>
+    </div>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+import ReModel from './ReModel.vue';
+import DeleteModeling from './Delete.vue';
+
+const props = defineProps({
+    item: {
+        type: Object,
+        required: true,
+    },
+});
+
+const emit = defineEmits(['updated']);
+const modal = ref(null);
+
+const openModal = () => {
+    modal.value?.showModal();
+};
+
+const closeModal = () => {
+    modal.value?.close();
+};
+
+const handleUpdated = () => {
+    emit('updated');
+    closeModal();
+};
+
+const statusLabel = (s) => {
+    if (s === 2) return 'สำเร็จ';
+    if (s === 1) return 'รอตรวจสอบ';
+    return 'ไม่สำเร็จ';
+};
+
+const statusColorClass = (s) => {
+    if (s === 2) return 'bg-success';
+    if (s === 1) return 'bg-warning';
+    return 'bg-error';
+};
+</script>
+
+<style scoped></style>

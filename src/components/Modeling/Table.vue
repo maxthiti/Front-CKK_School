@@ -10,11 +10,12 @@
                     <th class="text-center">ตำแหน่ง</th>
                     <th class="text-center">ห้องเรียน/แผนก</th>
                     <th class="text-center">สถานะ Modeling</th>
+                    <th class="text-center">จัดการ</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-if="data.length === 0">
-                    <td colspan="6" class="text-center py-8 text-base-content/60">
+                    <td colspan="7" class="text-center py-8 text-base-content/60">
                         ไม่พบข้อมูล
                     </td>
                 </tr>
@@ -40,6 +41,11 @@
                                     statusColorClass(model.status)
                                 ]" :aria-label="statusLabel(model.status)" role="img"></div>
                             </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="flex justify-center">
+                            <DetailModeling :item="item" @updated="$emit('updated')" />
                         </div>
                     </td>
                 </tr>
@@ -97,6 +103,11 @@
                     </div>
                 </div>
             </div>
+
+            <div class="mt-3">
+                <div class="divider my-2"></div>
+                <DetailModeling :item="item" @updated="$emit('updated')" />
+            </div>
         </div>
     </div>
 
@@ -111,6 +122,8 @@
 </template>
 
 <script setup>
+import DetailModeling from './Detail.vue';
+
 defineProps({
     data: {
         type: Array,
@@ -126,10 +139,12 @@ defineProps({
     },
 });
 
+defineEmits(['updated']);
+
 // Map status codes to Thai labels
 const statusLabel = (s) => {
     if (s === 2) return 'สำเร็จ'
-    if (s === 1) return 'รอตรวจสอบ' // หรือ 'กำลังประมวลผล' หากต้องการเปลี่ยน
+    if (s === 1) return 'รอตรวจสอบ'
     return 'ไม่สำเร็จ'
 }
 
@@ -139,7 +154,6 @@ const statusColorClass = (s) => {
     if (s === 1) return 'bg-warning'
     return 'bg-error'
 }
-
 </script>
 
 <style scoped></style>

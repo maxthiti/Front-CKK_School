@@ -28,7 +28,7 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, defineExpose } from 'vue'
+import { ref } from 'vue'
 import { TeacherService } from '../../api/teacher'
 
 const dialogRef = ref(null)

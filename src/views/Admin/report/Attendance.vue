@@ -95,52 +95,8 @@
         </div>
 
         <div v-else>
-            <ReportTable :data="reportData" @viewDetail="openDetailModal" />
-
-            <div v-if="pagination.total_pages > 1" class="flex justify-center items-center gap-2 mt-6">
-                <button @click="goToPage(1)" class="btn btn-sm" :disabled="pagination.page === 1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                    </svg>
-                </button>
-                <button @click="goToPage(pagination.page - 1)" class="btn btn-sm" :disabled="pagination.page === 1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                </button>
-
-                <div class="flex gap-1">
-                    <button v-for="page in visiblePages" :key="page" @click="goToPage(page)"
-                        :class="['btn btn-sm', page === pagination.page ? 'btn-primary' : '']">
-                        {{ page }}
-                    </button>
-                </div>
-
-                <button @click="goToPage(pagination.page + 1)" class="btn btn-sm"
-                    :disabled="pagination.page === pagination.total_pages">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
-                <button @click="goToPage(pagination.total_pages)" class="btn btn-sm"
-                    :disabled="pagination.page === pagination.total_pages">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                    </svg>
-                </button>
-            </div>
-
-            <div v-if="pagination.total_items > 0" class="text-center text-sm text-base-content/60 mt-4">
-                แสดง {{ ((pagination.page - 1) * pagination.limit) + 1 }} - {{
-                    Math.min(pagination.page * pagination.limit, pagination.total_items)
-                }} จาก {{ pagination.total_items }} รายการ
-            </div>
+            <ReportTable :data="reportData" :pagination="pagination" @viewDetail="openDetailModal"
+                @page-change="goToPage" />
         </div>
 
         <AttendanceDetail ref="detailModal" />
@@ -148,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import ReportTable from '../../../components/Report/AttendanceTable.vue'
 import AttendanceDetail from '../../../components/Report/AttendanceDetail.vue'
 import reportApi from '../../../api/report.js'
@@ -246,33 +202,6 @@ const goToPage = (page) => {
         fetchData()
     }
 }
-
-const visiblePages = computed(() => {
-    const current = pagination.value.page
-    const total = pagination.value.total_pages
-    const delta = 2
-    const pages = []
-
-    for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
-        pages.push(i)
-    }
-
-    if (current - delta > 2) {
-        pages.unshift('...')
-    }
-    if (current + delta < total - 1) {
-        pages.push('...')
-    }
-
-    if (total > 0) {
-        pages.unshift(1)
-        if (total > 1) {
-            pages.push(total)
-        }
-    }
-
-    return pages.filter((p, idx, arr) => p !== '...' || arr[idx - 1] !== '...')
-})
 
 const openDetailModal = (item) => {
     detailModal.value.openModal(item)

@@ -205,6 +205,24 @@ const compareChartRef = ref(null)
 let primaryChart = null
 let compareChart = null
 
+function getUtilityBgColor(className) {
+    const el = document.createElement('div')
+    el.className = className
+    el.style.display = 'none'
+    document.body.appendChild(el)
+    const color = getComputedStyle(el).backgroundColor
+    document.body.removeChild(el)
+    return color || 'rgba(0,0,0,1)'
+}
+
+function getThemeColors() {
+    const primary = getUtilityBgColor('bg-primary')
+    const primaryLight = getUtilityBgColor('bg-primary/70')
+    const secondary = getUtilityBgColor('bg-secondary')
+    const secondaryLight = getUtilityBgColor('bg-secondary/70')
+    return { primary, primaryLight, secondary, secondaryLight }
+}
+
 function getMonday(d) {
     const date = new Date(d)
     const day = date.getDay()
@@ -465,18 +483,46 @@ function buildPrimaryChart() {
         teacherOntime.push(Math.max(teaTotal - teaLate, 0))
     })
 
-    const datasets = [
-        { label: 'นักเรียน (ตรงเวลา)', data: studentOntime, backgroundColor: 'rgba(54,162,235,0.7)', borderColor: 'rgba(54,162,235,1)', stack: 'student' },
-        { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: 'rgba(255,99,132,0.7)', borderColor: 'rgba(255,99,132,1)', stack: 'student' },
-        { label: 'ครู (ตรงเวลา)', data: teacherOntime, backgroundColor: 'rgba(255,206,86,0.7)', borderColor: 'rgba(255,206,86,1)', stack: 'teacher' },
-        { label: 'ครู (สาย)', data: teacherLate, backgroundColor: 'rgba(255,159,64,0.7)', borderColor: 'rgba(255,159,64,1)', stack: 'teacher' }
+    const { primary: primaryColor, secondary: secondaryColor } = getThemeColors()
+    const red = 'rgba(220, 38, 38, 0.9)'
+    const redLight = 'rgba(248, 113, 113, 0.9)'
+    const blue = 'rgba(59, 130, 246, 0.9)'
+    const yellow = 'rgba(234, 179, 8, 0.9)'
+
+    let datasets = [
+        { label: 'นักเรียน (ตรงเวลา)', data: studentOntime, backgroundColor: primaryColor, borderColor: primaryColor, stack: 'student' },
+        { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: red, borderColor: red, stack: 'student' },
+        { label: 'ครู (ตรงเวลา)', data: teacherOntime, backgroundColor: secondaryColor, borderColor: secondaryColor, stack: 'teacher' },
+        { label: 'ครู (สาย)', data: teacherLate, backgroundColor: redLight, borderColor: redLight, stack: 'teacher' }
     ]
 
     if (primary.value.chartType === 'line') {
+        const toFill = (color, alpha) => {
+            if (color.startsWith('rgba')) {
+                const parts = color.replace(/rgba\(|\)/g, '').split(',').map(p => p.trim())
+                return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${alpha})`
+            }
+            if (color.startsWith('rgb')) {
+                const parts = color.replace(/rgb\(|\)/g, '').split(',').map(p => p.trim())
+                return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${alpha})`
+            }
+            return color
+        }
         datasets.forEach(ds => {
-            ds.fill = false
+            if (ds.label === 'นักเรียน (ตรงเวลา)') {
+                ds.borderColor = blue
+            } else if (ds.label === 'ครู (ตรงเวลา)') {
+                ds.borderColor = yellow
+            }
+
+            ds.fill = 'origin'
             ds.borderWidth = 2
             ds.tension = 0.4
+            ds.pointRadius = 0
+            ds.pointHoverRadius = 0
+            const isLate = /สาย/.test(ds.label)
+            const alpha = isLate ? 0.22 : 0.18
+            ds.backgroundColor = toFill(ds.borderColor, alpha)
             delete ds.stack
         })
     }
@@ -490,6 +536,8 @@ function buildPrimaryChart() {
             plugins: {
                 legend: { position: 'bottom' },
                 tooltip: {
+                    mode: 'index',
+                    intersect: false,
                     callbacks: {
                         label: (ctx) => {
                             const v = ctx.parsed.y || 0
@@ -499,9 +547,9 @@ function buildPrimaryChart() {
                 }
             },
             scales: {
-                x: { stacked: primary.value.chartType === 'bar' },
+                x: { stacked: primary.value.chartType !== 'line' ? true : false },
                 y: {
-                    stacked: primary.value.chartType === 'bar',
+                    stacked: primary.value.chartType !== 'line' ? true : false,
                     beginAtZero: true,
                     ticks: {
                         precision: 0,
@@ -544,18 +592,48 @@ function buildCompareChart() {
         teacherOntime.push(Math.max(teaTotal - teaLate, 0))
     })
 
-    const datasets = [
-        { label: 'นักเรียน (ตรงเวลา)', data: studentOntime, backgroundColor: 'rgba(54,162,235,0.7)', borderColor: 'rgba(54,162,235,1)', stack: 'student' },
-        { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: 'rgba(255,99,132,0.7)', borderColor: 'rgba(255,99,132,1)', stack: 'student' },
-        { label: 'ครู (ตรงเวลา)', data: teacherOntime, backgroundColor: 'rgba(255,206,86,0.7)', borderColor: 'rgba(255,206,86,1)', stack: 'teacher' },
-        { label: 'ครู (สาย)', data: teacherLate, backgroundColor: 'rgba(255,159,64,0.7)', borderColor: 'rgba(255,159,64,1)', stack: 'teacher' }
+    const { primary: primaryColor, secondary: secondaryColor } = getThemeColors()
+    const red = 'rgba(220, 38, 38, 0.9)'
+    const redLight = 'rgba(248, 113, 113, 0.9)'
+    const blue = 'rgba(59, 130, 246, 0.9)'
+    const blueLight = 'rgba(147, 197, 253, 0.9)'
+    const yellow = 'rgba(234, 179, 8, 0.9)'
+    const yellowLight = 'rgba(253, 224, 71, 0.9)'
+
+    let datasets = [
+        { label: 'นักเรียน (ตรงเวลา)', data: studentOntime, backgroundColor: primaryColor, borderColor: primaryColor, stack: 'student' },
+        { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: red, borderColor: red, stack: 'student' },
+        { label: 'ครู (ตรงเวลา)', data: teacherOntime, backgroundColor: secondaryColor, borderColor: secondaryColor, stack: 'teacher' },
+        { label: 'ครู (สาย)', data: teacherLate, backgroundColor: redLight, borderColor: redLight, stack: 'teacher' }
     ]
 
     if (compare.value.chartType === 'line') {
+        const toFill = (color, alpha) => {
+            if (color.startsWith('rgba')) {
+                const parts = color.replace(/rgba\(|\)/g, '').split(',').map(p => p.trim())
+                return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${alpha})`
+            }
+            if (color.startsWith('rgb')) {
+                const parts = color.replace(/rgb\(|\)/g, '').split(',').map(p => p.trim())
+                return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${alpha})`
+            }
+            return color
+        }
         datasets.forEach(ds => {
-            ds.fill = false
+            if (ds.label === 'นักเรียน (ตรงเวลา)') {
+                ds.borderColor = blue
+            } else if (ds.label === 'ครู (ตรงเวลา)') {
+                ds.borderColor = yellow
+            }
+
+            ds.fill = 'origin'
             ds.borderWidth = 2
             ds.tension = 0.4
+            ds.pointRadius = 0
+            ds.pointHoverRadius = 0
+            const isLate = /สาย/.test(ds.label)
+            const alpha = isLate ? 0.22 : 0.18
+            ds.backgroundColor = toFill(ds.borderColor, alpha)
             delete ds.stack
         })
     }
@@ -569,6 +647,8 @@ function buildCompareChart() {
             plugins: {
                 legend: { position: 'bottom' },
                 tooltip: {
+                    mode: 'index',
+                    intersect: false,
                     callbacks: {
                         label: (ctx) => {
                             const v = ctx.parsed.y || 0
@@ -591,6 +671,7 @@ function buildCompareChart() {
         }
     })
 }
+
 
 onMounted(async () => {
     const Chart = (await import('chart.js/auto')).default

@@ -2,6 +2,7 @@
     <div class="space-y-6">
         <div class="flex justify-between items-center">
             <h1 class="text-3xl font-bold text-primary">จัดการโมเดล</h1>
+            <CreateModeling @created="fetchData" />
         </div>
 
         <div class="bg-base-100 rounded-lg shadow-lg p-4">
@@ -69,7 +70,7 @@
         </div>
 
         <div v-else>
-            <ModelingTable :data="modelings" :page="currentPage" :limit="filters.limit" />
+            <ModelingTable :data="modelings" :page="currentPage" :limit="filters.limit" @updated="fetchData" />
 
             <div class="flex flex-col items-center gap-4 mt-6">
                 <div class="text-sm text-base-content/60">
@@ -100,6 +101,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import ModelingTable from "../../components/Modeling/Table.vue";
+import CreateModeling from "../../components/Modeling/Create.vue";
 import ModelingService from "../../api/modeling.js";
 import Swal from "sweetalert2";
 

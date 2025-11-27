@@ -77,7 +77,7 @@
 </template>
 
 <script setup>
-import { ref, defineExpose } from 'vue'
+import { ref } from 'vue'
 
 const imgBaseUrl = import.meta.env.VITE_APP_IMG_URL
 

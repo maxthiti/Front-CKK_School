@@ -61,25 +61,94 @@
         </div>
     </div>
 
-    <!-- <div class="mt-4 flex items-center gap-2 text-xs">
-        <span class="badge badge-error badge-xs">ขาด</span> รายชื่อที่ไม่มาทั้งวัน
-    </div> -->
+    <div v-if="pagination.total_pages > 1" class="flex justify-center items-center gap-2 mt-6">
+        <button @click="$emit('page-change', 1)" class="btn btn-sm" :disabled="pagination.page === 1">«</button>
+        <button @click="$emit('page-change', pagination.page - 1)" class="btn btn-sm"
+            :disabled="pagination.page === 1">‹</button>
+        <div class="flex gap-1">
+            <button v-for="page in visiblePages" :key="page" @click="$emit('page-change', page)"
+                :class="['btn btn-sm', page === pagination.page ? 'btn-primary' : '']">
+                {{ page }}
+            </button>
+        </div>
+        <button @click="$emit('page-change', pagination.page + 1)" class="btn btn-sm"
+            :disabled="pagination.page === pagination.total_pages">›</button>
+        <button @click="$emit('page-change', pagination.total_pages)" class="btn btn-sm"
+            :disabled="pagination.page === pagination.total_pages">»</button>
+    </div>
+
+    <div v-if="pagination.total_items > 0" class="text-center text-sm text-base-content/60 mt-4">
+        แสดง {{ ((pagination.page - 1) * pagination.limit) + 1 }} - {{
+            Math.min(pagination.page * pagination.limit, pagination.total_items)
+        }} จาก {{ pagination.total_items }} รายการ
+    </div>
+
+    <dialog ref="imageModal" class="modal">
+        <div class="modal-box max-w-7xl w-full p-0">
+            <form method="dialog">
+                <button
+                    class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 z-10 bg-white/80 hover:bg-white">✕</button>
+            </form>
+            <img v-if="selectedImage" :src="`${imgProBaseUrl}${selectedImage}`" alt="profile image"
+                class="w-full h-auto max-h-[90vh] object-contain" />
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
 </template>
 
 <script setup>
-defineProps({
+import { ref, computed } from 'vue'
+
+const props = defineProps({
     data: {
         type: Array,
         required: true,
+    },
+    pagination: {
+        type: Object,
+        required: true
     }
 })
 
-const emit = defineEmits(['viewImage'])
+const emit = defineEmits(['page-change'])
 
 const imgProBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
 
+const imageModal = ref(null)
+const selectedImage = ref(null)
+
+const visiblePages = computed(() => {
+    const current = props.pagination.page
+    const total = props.pagination.total_pages
+    const delta = 2
+    const pages = []
+
+    for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+        pages.push(i)
+    }
+
+    if (current - delta > 2) {
+        pages.unshift('...')
+    }
+    if (current + delta < total - 1) {
+        pages.push('...')
+    }
+
+    if (total > 0) {
+        pages.unshift(1)
+        if (total > 1) {
+            pages.push(total)
+        }
+    }
+
+    return pages.filter((p, idx, arr) => p !== '...' || arr[idx - 1] !== '...')
+})
+
 const viewImage = (image) => {
-    emit('viewImage', image)
+    selectedImage.value = image
+    imageModal.value?.showModal()
 }
 </script>
 

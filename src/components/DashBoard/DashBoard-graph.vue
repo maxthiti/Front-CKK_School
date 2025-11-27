@@ -54,6 +54,26 @@ const strangerCount = ref(0)
 const selectedDate = ref(new Date().toISOString().split('T')[0])
 const loading = ref(false)
 
+// Get actual CSS color from Tailwind/DaisyUI utility classes
+function getUtilityBgColor(className) {
+    const el = document.createElement('div')
+    el.className = className
+    el.style.display = 'none'
+    document.body.appendChild(el)
+    const color = getComputedStyle(el).backgroundColor
+    document.body.removeChild(el)
+    return color || 'rgba(0,0,0,1)'
+}
+
+// Theme colors based on Sidebar: primary (students) and secondary (teachers)
+function getThemeColors() {
+    const primary = getUtilityBgColor('bg-primary')
+    const primaryLight = getUtilityBgColor('bg-primary/70')
+    const secondary = getUtilityBgColor('bg-secondary')
+    const secondaryLight = getUtilityBgColor('bg-secondary/70')
+    return { primary, primaryLight, secondary, secondaryLight }
+}
+
 function formatDateISO(d) {
     return d.toISOString().split('T')[0]
 }
@@ -181,15 +201,19 @@ function buildBarChart(start, end) {
         return thaiDays[dayIdx]
     })
 
+    const { primary, primaryLight, secondary, secondaryLight } = getThemeColors()
+    const red = 'rgba(220, 38, 38, 0.9)' // Tailwind red-600
+    const redLight = 'rgba(248, 113, 113, 0.9)' // Tailwind red-400
+
     barChart = new ChartLib(barChartRef.value, {
         type: 'bar',
         data: {
             labels: weekdayLabels,
             datasets: [
-                { label: 'นักเรียน (ตรงเวลา)', data: studentOntime, backgroundColor: 'rgba(54,162,235,0.7)', stack: 'student' },
-                { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: 'rgba(255,99,132,0.7)', stack: 'student' },
-                { label: 'ครู (ตรงเวลา)', data: teacherOntime, backgroundColor: 'rgba(255,206,86,0.7)', stack: 'teacher' },
-                { label: 'ครู (สาย)', data: teacherLate, backgroundColor: 'rgba(255,159,64,0.7)', stack: 'teacher' }
+                { label: 'นักเรียน (ตรงเวลา)', data: studentOntime, backgroundColor: primary, borderColor: primary, stack: 'student' },
+                { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: red, borderColor: red, stack: 'student' },
+                { label: 'ครู (ตรงเวลา)', data: teacherOntime, backgroundColor: secondary, borderColor: secondary, stack: 'teacher' },
+                { label: 'ครู (สาย)', data: teacherLate, backgroundColor: redLight, borderColor: redLight, stack: 'teacher' }
             ]
         },
         options: {
@@ -200,6 +224,11 @@ function buildBarChart(start, end) {
                 legend: { position: 'bottom' },
                 tooltip: {
                     callbacks: {
+                        title: (items) => {
+                            const idx = items[0]?.dataIndex ?? 0
+                            const iso = labelsISO[idx]
+                            return formatDateThai(iso)
+                        },
                         label: (ctx) => {
                             const v = ctx.parsed.y || 0
                             return `${ctx.dataset.label}: ${Math.round(v)}`
@@ -231,14 +260,17 @@ function buildPieChart(studentTotal, teacherTotal) {
     if (pieChart) pieChart.destroy()
     const ChartLib = window.Chart
     if (!ChartLib) return
+    const { primary: p, secondary: s } = getThemeColors()
+    const error = getUtilityBgColor('bg-error')
+
     pieChart = new ChartLib(pieChartRef.value, {
         type: 'pie',
         data: {
             labels: ['นักเรียนที่เข้า', 'ครูที่เข้า', 'บุคคลภายนอก'],
             datasets: [{
                 data: [studentTotal || 0, teacherTotal || 0, strangerCount.value || 0],
-                backgroundColor: ['rgba(54,162,235,0.6)', 'rgba(255,206,86,0.6)', 'rgba(255,99,132,0.6)'],
-                borderColor: ['rgba(54,162,235,1)', 'rgba(255,206,86,1)', 'rgba(255,99,132,1)'],
+                backgroundColor: [p, s, error],
+                borderColor: [p, s, error],
                 borderWidth: 1
             }]
         },

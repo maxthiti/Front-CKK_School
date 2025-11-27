@@ -42,42 +42,9 @@
         </div>
 
         <div v-else>
-            <LateTable :data="paginatedData" @viewImage="openImageModal" />
-            <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-6">
-                <button @click="goToPage(1)" class="btn btn-sm" :disabled="pagination.page === 1">«</button>
-                <button @click="goToPage(pagination.page - 1)" class="btn btn-sm"
-                    :disabled="pagination.page === 1">‹</button>
-                <div class="flex gap-1">
-                    <button v-for="page in visiblePages" :key="page" @click="goToPage(page)"
-                        :class="['btn btn-sm', page === pagination.page ? 'btn-primary' : '']">
-                        {{ page }}
-                    </button>
-                </div>
-                <button @click="goToPage(pagination.page + 1)" class="btn btn-sm"
-                    :disabled="pagination.page === totalPages">›</button>
-                <button @click="goToPage(totalPages)" class="btn btn-sm"
-                    :disabled="pagination.page === totalPages">»</button>
-            </div>
-            <div v-if="filteredData.length > 0" class="text-center text-sm text-base-content/60 mt-4">
-                แสดง {{ startItem }} - {{ endItem }} จาก {{ filteredData.length }} รายการ
-            </div>
+            <LateTable :data="paginatedData" :pagination="paginationData" @page-change="goToPage" />
         </div>
     </div>
-
-    <dialog ref="imageModal" class="modal">
-        <div class="modal-box max-w-7xl w-full p-0">
-            <form method="dialog">
-                <button
-                    class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 z-10 bg-white/80 hover:bg-white">✕</button>
-            </form>
-            <img v-if="selectedImage"
-                :src="`${selectedImageType === 'profile' ? imgProBaseUrl : imgBaseUrl}${selectedImage}`"
-                alt="late image" class="w-full h-auto max-h-[90vh] object-contain" />
-        </div>
-        <form method="dialog" class="modal-backdrop">
-            <button>close</button>
-        </form>
-    </dialog>
 </template>
 
 <script setup>
@@ -85,15 +52,9 @@ import { ref, onMounted, computed } from 'vue'
 import LateTable from '../../../components/Report/LateTable.vue'
 import reportApi from '../../../api/report.js'
 
-const imgBaseUrl = import.meta.env.VITE_APP_IMG_URL
-const imgProBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
-
 const loading = ref(false)
 const error = ref(null)
 const lateData = ref([])
-const selectedImage = ref(null)
-const selectedImageType = ref('snap')
-const imageModal = ref(null)
 
 const filters = ref({
     role: 'student',
@@ -173,41 +134,17 @@ const paginatedData = computed(() => {
     return filteredData.value.slice(start, start + pagination.value.limit)
 })
 
-const startItem = computed(() => filteredData.value.length === 0 ? 0 : (pagination.value.page - 1) * pagination.value.limit + 1)
-const endItem = computed(() => Math.min(pagination.value.page * pagination.value.limit, filteredData.value.length))
-
-const visiblePages = computed(() => {
-    const current = pagination.value.page
-    const total = totalPages.value
-    const delta = 2
-    const pages = []
-    for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
-        pages.push(i)
-    }
-    if (current - delta > 2) pages.unshift('...')
-    if (current + delta < total - 1) pages.push('...')
-    if (total > 0) {
-        pages.unshift(1)
-        if (total > 1) pages.push(total)
-    }
-    return pages.filter((p, idx, arr) => p !== '...' || arr[idx - 1] !== '...')
-})
+const paginationData = computed(() => ({
+    page: pagination.value.page,
+    limit: pagination.value.limit,
+    total_items: filteredData.value.length,
+    total_pages: totalPages.value
+}))
 
 const goToPage = (page) => {
     if (page >= 1 && page <= totalPages.value) {
         pagination.value.page = page
     }
-}
-
-const openImageModal = (payload) => {
-    if (payload && typeof payload === 'object' && payload.path) {
-        selectedImage.value = payload.path
-        selectedImageType.value = payload.type || 'snap'
-    } else {
-        selectedImage.value = payload
-        selectedImageType.value = 'snap'
-    }
-    imageModal.value.showModal()
 }
 
 onMounted(() => {
