@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from "vue-router";
 const Login = () => import("../views/Login.vue");
 const AdminLayout = () => import("../layouts/AdminLayout.vue");
 const Home = () => import("../views/Admin/Home.vue");
+import UpdatePassword from "../components/UpdatePassword.vue";
 const Teacher = () => import("../views/Admin/Teacher.vue");
 const Student = () => import("../views/Admin/Student.vue");
 const Account = () => import("../views/Admin/Account.vue");
@@ -94,6 +95,11 @@ const routes = [
         path: "report/stats",
         name: "StatsView",
         component: StatsView,
+      },
+      {
+        path: "/update-password",
+        name: "UpdatePassword",
+        component: UpdatePassword,
       },
     ],
   },

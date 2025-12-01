@@ -1,5 +1,5 @@
 <template>
-    <div class="p-6 space-y-6">
+    <div class="p-0 md:p-6 space-y-6">
         <div class="flex justify-between items-center">
             <h1 class="text-lg md:text-3xl font-bold text-primary">ตารางเข้า-ออก</h1>
             <input v-model="filters.date" type="date" @change="fetchData"
@@ -9,7 +9,7 @@
         <div class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3">
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                <div class="form-control">
+                <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
                         <span class="label-text text-sm font-medium">ประเภท</span>
                     </label>
@@ -28,7 +28,7 @@
                         class="input input-sm input-bordered w-full" @keyup.enter="fetchData" />
                 </div>
 
-                <div class="form-control">
+                <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
                         <span class="label-text text-sm font-medium">ชั้นปี</span>
                     </label>
@@ -44,12 +44,20 @@
                     </select>
                 </div>
 
-                <div class="form-control">
+                <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
                         <span class="label-text text-sm font-medium">ห้อง</span>
                     </label>
                     <input v-model.number="filters.classroom" type="number" placeholder="หมายเลขห้อง"
                         class="input input-sm input-bordered w-full" :disabled="filters.role === 'teacher'" min="0" />
+                </div>
+                <div v-if="residentRole === 'teacher'"
+                    class="form-control col-span-3 flex flex-col items-center md:items-end">
+                    <div
+                        class="p-1 text-white bg-primary rounded-md text-center min-w-[120px] flex flex-col items-center">
+                        <span class="label-text text-sm font-medium mb-1 text-secondary">ชั้นปี / ห้อง</span>
+                        <span>{{ teacherGrade }}/{{ teacherClassroom }}</span>
+                    </div>
                 </div>
             </div>
 
@@ -114,17 +122,21 @@ const error = ref(null)
 const reportData = ref([])
 const detailModal = ref(null)
 
+const residentRole = localStorage.getItem('residentRole') || ''
+const teacherGrade = localStorage.getItem('grade') || ''
+const teacherClassroom = localStorage.getItem('classroom') || ''
+
 const filters = ref({
-    role: 'student',
+    role: residentRole === 'teacher' ? 'student' : 'student',
     search: '',
-    grade: 'ม.1',
-    classroom: 1,
+    grade: residentRole === 'teacher' ? teacherGrade : 'ม.1',
+    classroom: residentRole === 'teacher' ? teacherClassroom : 1,
     date: getDefaultDate()
 })
 
 const pagination = ref({
     page: 1,
-    limit: 20,
+    limit: 10,
     total_items: 0,
     total_pages: 0
 })
@@ -135,15 +147,17 @@ function getDefaultDate() {
 }
 
 const handleRoleChange = () => {
-    if (filters.value.role === 'teacher') {
-        filters.value.grade = ''
-        filters.value.classroom = 0
-    } else {
-        filters.value.grade = 'ม.1'
-        filters.value.classroom = 1
+    if (residentRole !== 'teacher') {
+        if (filters.value.role === 'teacher') {
+            filters.value.grade = ''
+            filters.value.classroom = 0
+        } else {
+            filters.value.grade = 'ม.1'
+            filters.value.classroom = 1
+        }
+        pagination.value.page = 1
+        fetchData()
     }
-    pagination.value.page = 1
-    fetchData()
 }
 
 const fetchData = async () => {
@@ -153,17 +167,26 @@ const fetchData = async () => {
     try {
         const rawSearch = filters.value.search.trim()
         const isNumeric = /^\d+$/.test(rawSearch)
-        const params = {
+        let params = {
             start: filters.value.date,
             end: filters.value.date,
-            role: filters.value.role,
             name: isNumeric ? '' : rawSearch,
             userid: isNumeric ? rawSearch : '',
             page: pagination.value.page,
             limit: pagination.value.limit,
-            grade: filters.value.grade,
-            classroom: filters.value.role === 'teacher' ? 0 : filters.value.classroom
         }
+
+        if (residentRole === 'teacher') {
+            params.role = 'student'
+            params.grade = teacherGrade
+            params.classroom = teacherClassroom
+        } else {
+            params.role = filters.value.role
+            params.grade = filters.value.grade
+            params.classroom = filters.value.classroom
+        }
+
+        console.log('ส่งข้อมูลไป API:', params)
 
         const response = await reportApi.getAttendanceReport(params)
 
@@ -185,12 +208,22 @@ const fetchData = async () => {
 }
 
 const resetFilters = () => {
-    filters.value = {
-        role: 'student',
-        search: '',
-        grade: 'ม.1',
-        classroom: 1,
-        date: getDefaultDate()
+    if (residentRole === 'teacher') {
+        filters.value = {
+            role: 'student',
+            search: '',
+            grade: teacherGrade,
+            classroom: teacherClassroom,
+            date: getDefaultDate()
+        }
+    } else {
+        filters.value = {
+            role: 'student',
+            search: '',
+            grade: 'ม.1',
+            classroom: 1,
+            date: getDefaultDate()
+        }
     }
     pagination.value.page = 1
     fetchData()

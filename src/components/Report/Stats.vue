@@ -1,16 +1,18 @@
 <template>
-    <div class="p-0 md:p-6 space-y-6">
-        <div class="flex justify-between items-center flex-col md:flex-row md:items-center">
-            <h1 class="text-lg md:text-3xl font-bold text-primary mb-2 md:mb-0">สถิติการเข้า-ออก</h1>
-            <div class="flex items-start md:items-center gap-3 w-full md:w-auto md:justify-end flex-col md:flex-row">
-                <div class="md:w-auto mb-2 md:mb-0">
+    <div class="p-1 sm:p-2 md:p-6 space-y-2 sm:space-y-4 md:space-y-6 w-full">
+        <div class="flex flex-col md:flex-row md:items-center justify-between items-center gap-2 md:gap-4">
+            <h1 class="text-base sm:text-lg md:text-2xl lg:text-3xl font-bold text-primary mb-2 md:mb-0">
+                สถิติการเข้า-ออก</h1>
+            <div
+                class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full md:w-auto md:justify-end">
+                <div class="md:w-auto mb-2 md:mb-0 w-full">
                     <select v-model="viewMode" @change="handleViewModeChange"
-                        class="select select-sm select-bordered w-full md:w-auto">
+                        class="select select-xs sm:select-sm select-bordered w-full md:w-auto">
                         <option value="week">รายอาทิตย์</option>
                         <option value="month">รายเดือน</option>
                     </select>
                 </div>
-                <div v-if="viewMode === 'week'" class="flex items-center gap-2 w-full md:w-auto">
+                <div v-if="viewMode === 'week'" class="flex items-center gap-1 sm:gap-2 w-full md:w-auto">
                     <button @click="navigateWeek(-1)" class="btn btn-xs btn-circle">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
@@ -26,7 +28,7 @@
                     </button>
                     <span v-if="primaryLoading" class="loading loading-spinner loading-xs"></span>
                 </div>
-                <div v-else-if="viewMode === 'month'" class="flex items-center gap-2 w-full md:w-auto">
+                <div v-else-if="viewMode === 'month'" class="flex items-center gap-1 sm:gap-2 w-full md:w-auto">
                     <button @click="navigateMonth(-1)" class="btn btn-xs btn-circle">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
@@ -43,7 +45,7 @@
                     <span v-if="primaryLoading" class="loading loading-spinner loading-xs"></span>
                 </div>
 
-                <button v-if="!isMdOrLess" @click="toggleCompare" class="btn btn-sm btn-secondary">
+                <button v-if="!isMdOrLess" @click="toggleCompare" class="btn btn-xs sm:btn-sm btn-secondary">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -54,9 +56,10 @@
             </div>
         </div>
 
-        <div :class="['grid gap-6', compareMode && !isMdOrLess ? 'lg:grid-cols-2' : 'lg:grid-cols-1']">
-            <div class="space-y-4">
-                <div v-if="primary.data" class="grid grid-cols-2 gap-3">
+        <div
+            :class="['grid', compareMode && !isMdOrLess ? 'lg:grid-cols-2' : 'lg:grid-cols-1', 'gap-2 sm:gap-4 md:gap-6']">
+            <div class="space-y-1 sm:space-y-2 md:space-y-4">
+                <div v-if="primary.data" class="grid grid-cols-2 gap-1 sm:gap-2 md:gap-3">
                     <div class="stat bg-base-100 shadow rounded-lg p-3">
                         <div class="stat-title text-xs">นักเรียนทั้งหมด</div>
                         <div class="stat-value text-2xl text-primary">{{ primary.data.total_students || 0 }}</div>
@@ -67,7 +70,7 @@
                     </div>
                 </div>
 
-                <div v-if="primary.stats" class="grid grid-cols-2 gap-3">
+                <div v-if="primary.stats" class="grid grid-cols-2 gap-1 sm:gap-2 md:gap-3">
                     <div class="card bg-success/10 shadow-sm p-3">
                         <div class="text-xs font-medium">วันที่เข้ามากที่สุด</div>
                         <div class="text-lg font-bold text-success">{{ primary.stats.maxDay.date }}</div>
@@ -80,25 +83,25 @@
                     </div>
                 </div>
 
-                <div v-if="primary.data" class="bg-base-100 rounded-lg shadow-lg p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="font-semibold">กราฟ</h3>
+                <div v-if="primary.data" class="bg-base-100 rounded-lg shadow-lg p-1 sm:p-2 md:p-4">
+                    <div class="flex items-center justify-between mb-1 sm:mb-2 md:mb-3">
+                        <h3 class="font-semibold text-xs sm:text-sm md:text-base">กราฟ</h3>
                         <select v-model="primary.chartType" @change="buildPrimaryChart"
-                            class="select select-sm select-bordered">
+                            class="select select-xs sm:select-sm select-bordered">
                             <option value="bar">กราฟแท่ง</option>
                             <option value="line">กราฟเส้น</option>
                         </select>
                     </div>
-                    <div class="h-80">
+                    <div class="h-32 sm:h-48 md:h-80 transition-all duration-300">
                         <canvas ref="primaryChartRef"></canvas>
                     </div>
                 </div>
             </div>
 
-            <div v-if="compareMode && !isMdOrLess" class="space-y-4">
-                <div class="bg-base-100 rounded-lg shadow-lg p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <h2 class="text-lg font-semibold">ช่วงที่ 2 (เปรียบเทียบ)</h2>
+            <div v-if="compareMode && !isMdOrLess" class="space-y-1 sm:space-y-2 md:space-y-4">
+                <div class="bg-base-100 rounded-lg shadow-lg p-1 sm:p-2 md:p-4">
+                    <div class="flex items-center justify-between mb-1 sm:mb-2 md:mb-3">
+                        <h2 class="text-xs sm:text-base md:text-lg font-semibold">ช่วงที่ 2 (เปรียบเทียบ)</h2>
                         <div class="flex items-center gap-2">
                             <div v-if="viewMode === 'week'" class="flex items-center gap-2">
                                 <button @click="navigateCompareWeek(-1)" class="btn btn-xs btn-circle">
@@ -140,7 +143,7 @@
                     </div>
                 </div>
 
-                <div v-if="compare.stats" class="grid grid-cols-2 gap-3">
+                <div v-if="compare.stats" class="grid grid-cols-2 gap-1 sm:gap-2 md:gap-3">
                     <div class="card bg-success/10 shadow-sm p-3">
                         <div class="text-xs font-medium">วันที่เข้ามากที่สุด</div>
                         <div class="text-lg font-bold text-success">{{ compare.stats.maxDay.date }}</div>
@@ -153,16 +156,16 @@
                     </div>
                 </div>
 
-                <div v-if="compare.data" class="bg-base-100 rounded-lg shadow-lg p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="font-semibold">กราฟ</h3>
+                <div v-if="compare.data" class="bg-base-100 rounded-lg shadow-lg p-1 sm:p-2 md:p-4">
+                    <div class="flex items-center justify-between mb-1 sm:mb-2 md:mb-3">
+                        <h3 class="font-semibold text-xs sm:text-sm md:text-base">กราฟ</h3>
                         <select v-model="compare.chartType" @change="buildCompareChart"
-                            class="select select-sm select-bordered">
+                            class="select select-xs sm:select-sm select-bordered">
                             <option value="bar">กราฟแท่ง</option>
                             <option value="line">กราฟเส้น</option>
                         </select>
                     </div>
-                    <div class="h-80">
+                    <div class="h-32 sm:h-48 md:h-80 transition-all duration-300">
                         <canvas ref="compareChartRef"></canvas>
                     </div>
                 </div>
@@ -450,6 +453,10 @@ function computeStats(dailyStats) {
 function formatLabelDate(dateStr) {
     if (!dateStr) return ''
     const [year, month, day] = dateStr.split('-')
+    // ถ้าหน้าจอ md หรือน้อยกว่า ให้แสดงแค่ วันที่/เดือน
+    if (window.innerWidth <= 768) {
+        return `${day}/${month}`
+    }
     return `${day}/${month}/${year}`
 }
 

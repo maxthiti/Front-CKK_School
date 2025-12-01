@@ -1,5 +1,5 @@
 <template>
-    <div class="p-6 space-y-6">
+    <div class="p-0 md:p-6 space-y-6">
         <div class="flex justify-between items-center">
             <h1 class="text-lg md:text-3xl font-bold text-primary">ตารางมาสาย</h1>
             <input v-model="filters.date" type="date" @change="fetchData"
@@ -8,7 +8,7 @@
 
         <div class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div class="form-control">
+                <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
                         <span class="label-text text-sm font-medium">ประเภท</span>
                     </label>
@@ -52,6 +52,10 @@ import { ref, onMounted, computed } from 'vue'
 import LateTable from '../../../components/Report/LateTable.vue'
 import reportApi from '../../../api/report.js'
 
+const residentRole = localStorage.getItem('residentRole') || ''
+const teacherGrade = localStorage.getItem('grade') || ''
+const teacherClassroom = localStorage.getItem('classroom') || ''
+
 const loading = ref(false)
 const error = ref(null)
 const lateData = ref([])
@@ -59,7 +63,9 @@ const lateData = ref([])
 const filters = ref({
     role: 'student',
     date: getDefaultDate(),
-    search: ''
+    search: '',
+    grade: residentRole === 'teacher' ? teacherGrade : '',
+    classroom: residentRole === 'teacher' ? teacherClassroom : ''
 })
 
 const pagination = ref({
@@ -77,11 +83,14 @@ const fetchData = async () => {
     error.value = null
 
     try {
-        const params = {
+        let params = {
             date: filters.value.date,
             role: filters.value.role,
         }
-
+        if (residentRole === 'teacher') {
+            params.grade = teacherGrade
+            params.classroom = teacherClassroom
+        }
         const response = await reportApi.getLateReport(params)
 
         if (response.message === 'Success') {
@@ -118,13 +127,17 @@ const triggerSearch = () => {
 const isNumericSearch = computed(() => /^\d+$/.test(filters.value.search.trim()))
 
 const filteredData = computed(() => {
+    let base = lateData.value
+    if (residentRole === 'teacher' && teacherGrade && teacherClassroom) {
+        base = base.filter(item => item.position === 'นักเรียน' && item.grade === teacherGrade && item.classroom == teacherClassroom)
+    }
     const term = filters.value.search.trim()
-    if (!term) return lateData.value
+    if (!term) return base
     if (isNumericSearch.value) {
-        return lateData.value.filter(item => item.userid && item.userid.includes(term))
+        return base.filter(item => item.userid && item.userid.includes(term))
     }
     const lower = term.toLowerCase()
-    return lateData.value.filter(item => item.name && item.name.toLowerCase().includes(lower))
+    return base.filter(item => item.name && item.name.toLowerCase().includes(lower))
 })
 
 const totalPages = computed(() => Math.ceil(filteredData.value.length / pagination.value.limit) || 1)

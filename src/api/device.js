@@ -1,11 +1,18 @@
 import axios from "axios";
 
-const API_URL = "https://solutiondd.ruijieddns.com/ckk_api/device";
-
 class DeviceService {
+  constructor() {
+    this.baseUrl = import.meta.env.VITE_APP_BASE_URL;
+    this.token = localStorage.getItem("token");
+  }
+
   async getDevices() {
     try {
-      const response = await axios.get(API_URL);
+      const response = await axios.get(`${this.baseUrl}device`, {
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+      });
       return response.data;
     } catch (error) {
       console.error("Error fetching devices:", error);
@@ -19,12 +26,10 @@ class DeviceService {
       Object.keys(data).forEach((key) => {
         formData.append(key, data[key]);
       });
-
-      const token = localStorage.getItem("token");
-      const response = await axios.post(API_URL, formData, {
+      const response = await axios.post(`${this.baseUrl}device`, formData, {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${this.token}`,
         },
       });
       return response.data;
@@ -40,14 +45,16 @@ class DeviceService {
       Object.keys(data).forEach((key) => {
         formData.append(key, data[key]);
       });
-
-      const token = localStorage.getItem("token");
-      const response = await axios.patch(`${API_URL}/${id}`, formData, {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.patch(
+        `${this.baseUrl}device/${id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Bearer ${this.token}`,
+          },
+        }
+      );
       return response.data;
     } catch (error) {
       console.error("Error updating device:", error);
@@ -57,10 +64,9 @@ class DeviceService {
 
   async deleteDevice(id) {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.delete(`${API_URL}/${id}`, {
+      const response = await axios.delete(`${this.baseUrl}device/${id}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${this.token}`,
         },
       });
       return response.data;

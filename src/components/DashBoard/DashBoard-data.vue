@@ -8,7 +8,7 @@
             </div>
         </div>
 
-        <dialog ref="attendanceModal" class="modal">
+        <dialog ref="attendanceModal" class="modal" @close="resetAttendancePage">
             <div class="modal-box max-w-7xl">
                 <form method="dialog">
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
@@ -17,7 +17,7 @@
                 }} วันที่ {{ displayDate }}</h3>
 
                 <div class="flex gap-2 mb-4" v-if="attendanceRole === 'student'">
-                    <div class="form-control">
+                    <div v-if="residentRole !== 'teacher'" class="form-control">
                         <label class="label py-1">
                             <span class="label-text text-sm font-medium">ชั้นปี</span>
                         </label>
@@ -27,7 +27,7 @@
                             <option v-for="grade in availableGrades" :key="grade" :value="grade">{{ grade }}</option>
                         </select>
                     </div>
-                    <div class="form-control">
+                    <div v-if="residentRole !== 'teacher'" class="form-control">
                         <label class="label py-1">
                             <span class="label-text text-sm font-medium">ห้อง</span>
                         </label>
@@ -138,7 +138,7 @@
                         <div class="stat relative border-l pl-4">
                             <div class="stat-title">ขาด</div>
                             <div class="stat-value text-error">{{ studentAbsent }}</div>
-                                <div class="stat-desc absolute bottom-2 right-2">
+                            <div class="stat-desc absolute bottom-2 right-2">
                                 <button @click="showStudentMissedTable" class="btn btn-xs btn-error btn-plain">
                                     คลิก
                                 </button>
@@ -173,7 +173,7 @@
                         <div class="stat group relative border-l pl-4" ref="teacherAbsentStatRef">
                             <div class="stat-title">ขาด</div>
                             <div class="stat-value text-error">{{ teacherAbsent }}</div>
-                                <div class="stat-desc absolute bottom-2 right-2">
+                            <div class="stat-desc absolute bottom-2 right-2">
                                 <button @click="showTeacherMissedTable" class="btn btn-xs btn-error btn-plain">
                                     คลิก
                                 </button>
@@ -248,6 +248,11 @@ const classrooms = ref([])
 
 const classRoomService = new ClassRoomService()
 
+const residentRole = ref(localStorage.getItem('residentRole') || '')
+const localGrade = ref(localStorage.getItem('grade') || '')
+const localClassroom = ref(Number(localStorage.getItem('classroom')) || 0)
+const profileName = ref(localStorage.getItem('profileName') || '')
+
 const displayDate = computed(() => {
     const d = new Date(selectedDate.value)
     const dd = String(d.getDate()).padStart(2, '0')
@@ -298,6 +303,8 @@ const totalCombined = computed(() => (student.value.total || 0) + (teacher.value
 const studentAbsent = computed(() => Math.max((totals.value.total_students || 0) - (student.value.total || 0), 0))
 const teacherAbsent = computed(() => Math.max((totals.value.total_teachers || 0) - (teacher.value.total || 0), 0))
 
+const attendanceFilteredData = ref([])
+
 async function fetchDaily() {
     loading.value = true
     emit('dateChange', selectedDate.value)
@@ -345,19 +352,33 @@ async function showAttendanceTable() {
     try {
         loading.value = true
         attendanceRole.value = 'student'
-        const res = await reportApi.getAttendanceReport({
+        let params = {
             start: selectedDate.value,
             end: selectedDate.value,
             role: 'student',
             page: attendancePage.value,
-            limit: attendanceLimit.value,
+            limit: 5,
             grade: attendanceGrade.value,
             classroom: attendanceClassroom.value
-        })
+        }
+        if (residentRole.value === 'teacher') {
+            params.grade = localGrade.value
+            params.classroom = localClassroom.value
+            params.limit = 50
+        }
+        const res = await reportApi.getAttendanceReport(params)
         if (res.message === 'Success' && res.data) {
-            attendanceData.value = res.data || []
-            attendanceTotalItems.value = res.total_items || 0
-            attendanceTotalPages.value = res.total_pages || 0
+            let filtered = (res.data || []).filter(item => item.attendances && item.attendances.length > 0)
+            if (residentRole.value === 'teacher') {
+                attendanceFilteredData.value = filtered
+                attendanceTotalItems.value = filtered.length
+                attendanceTotalPages.value = Math.ceil(filtered.length / 5) || 1
+                attendanceData.value = filtered.slice((attendancePage.value - 1) * 5, attendancePage.value * 5)
+            } else {
+                attendanceData.value = filtered
+                attendanceTotalItems.value = res.total_items || filtered.length
+                attendanceTotalPages.value = res.total_pages || 1
+            }
             attendanceModal.value?.showModal()
         }
     } catch (e) {
@@ -371,17 +392,32 @@ async function showTeacherAttendanceTable() {
     try {
         loading.value = true
         attendanceRole.value = 'teacher'
-        const res = await reportApi.getAttendanceReport({
+        let params = {
             start: selectedDate.value,
             end: selectedDate.value,
             role: 'teacher',
             page: attendancePage.value,
-            limit: attendanceLimit.value
-        })
+            limit: 5
+        }
+        if (residentRole.value === 'teacher') {
+            params.grade = null
+            params.classroom = 0
+            params.name = profileName.value
+            params.limit = 50
+        }
+        const res = await reportApi.getAttendanceReport(params)
         if (res.message === 'Success' && res.data) {
-            attendanceData.value = res.data || []
-            attendanceTotalItems.value = res.total_items || 0
-            attendanceTotalPages.value = res.total_pages || 0
+            let filtered = (res.data || []).filter(item => item.attendances && item.attendances.length > 0)
+            if (residentRole.value === 'teacher') {
+                attendanceFilteredData.value = filtered
+                attendanceTotalItems.value = filtered.length
+                attendanceTotalPages.value = Math.ceil(filtered.length / 5) || 1
+                attendanceData.value = filtered.slice((attendancePage.value - 1) * 5, attendancePage.value * 5)
+            } else {
+                attendanceData.value = filtered
+                attendanceTotalItems.value = res.total_items || filtered.length
+                attendanceTotalPages.value = res.total_pages || 1
+            }
             attendanceModal.value?.showModal()
         }
     } catch (e) {
@@ -524,16 +560,24 @@ function handleGradeChange() {
 async function handlePageChange(page) {
     if (page >= 1 && page <= attendanceTotalPages.value) {
         attendancePage.value = page
-        if (attendanceRole.value === 'teacher') {
-            await showTeacherAttendanceTable()
+        if (residentRole.value === 'teacher') {
+            attendanceData.value = attendanceFilteredData.value.slice((attendancePage.value - 1) * 5, attendancePage.value * 5)
         } else {
-            await showAttendanceTable()
+            if (attendanceRole.value === 'teacher') {
+                await showTeacherAttendanceTable()
+            } else {
+                await showAttendanceTable()
+            }
         }
     }
 }
 
 function viewDetail(item) {
     detailModal.value?.openModal(item)
+}
+
+function resetAttendancePage() {
+    attendancePage.value = 1
 }
 
 onMounted(() => {

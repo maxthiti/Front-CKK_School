@@ -96,20 +96,23 @@
         </div>
     </div>
 
-    <div v-if="pagination.total_pages > 1" class="flex justify-center items-center gap-2 mt-6">
-        <button @click="$emit('page-change', 1)" class="btn btn-sm" :disabled="pagination.page === 1">«</button>
-        <button @click="$emit('page-change', pagination.page - 1)" class="btn btn-sm"
-            :disabled="pagination.page === 1">‹</button>
-        <div class="flex gap-1">
-            <button v-for="page in visiblePages" :key="page" @click="$emit('page-change', page)"
-                :class="['btn btn-sm', page === pagination.page ? 'btn-primary' : '']">
+    <div v-if="pagination.total_pages > 1" class="flex justify-center mt-6">
+        <div class="join">
+            <button class="join-item btn btn-sm bg-transparent border-none"
+                @click="$emit('page-change', pagination.page - 1)" :disabled="pagination.page === 1">
+                «
+            </button>
+            <button v-for="page in displayedPages" :key="page" class="join-item btn btn-sm bg-transparent border-none"
+                :class="page === pagination.page ? 'bg-base-content/20 font-bold' : ''"
+                @click="$emit('page-change', page)">
                 {{ page }}
             </button>
+            <button class="join-item btn btn-sm bg-transparent border-none"
+                @click="$emit('page-change', pagination.page + 1)"
+                :disabled="pagination.page === pagination.total_pages">
+                »
+            </button>
         </div>
-        <button @click="$emit('page-change', pagination.page + 1)" class="btn btn-sm"
-            :disabled="pagination.page === pagination.total_pages">›</button>
-        <button @click="$emit('page-change', pagination.total_pages)" class="btn btn-sm"
-            :disabled="pagination.page === pagination.total_pages">»</button>
     </div>
 
     <div v-if="pagination.total_items > 0" class="text-center text-sm text-base-content/60 mt-4">
@@ -157,55 +160,47 @@ const imageModal = ref(null)
 const selectedImage = ref(null)
 const selectedImageType = ref('snap')
 
-const visiblePages = computed(() => {
-    const current = props.pagination.page
+const displayedPages = computed(() => {
     const total = props.pagination.total_pages
-    const delta = 2
+    const current = props.pagination.page
+    const maxVisible = 5
+    let startPage = Math.max(1, current - Math.floor(maxVisible / 2))
+    let endPage = Math.min(total, startPage + maxVisible - 1)
+    if (endPage - startPage < maxVisible - 1) {
+        startPage = Math.max(1, endPage - maxVisible + 1)
+    }
     const pages = []
-
-    for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+    for (let i = startPage; i <= endPage; i++) {
         pages.push(i)
     }
-
-    if (current - delta > 2) {
-        pages.unshift('...')
-    }
-    if (current + delta < total - 1) {
-        pages.push('...')
-    }
-
-    if (total > 0) {
-        pages.unshift(1)
-        if (total > 1) {
-            pages.push(total)
-        }
-    }
-
-    return pages.filter((p, idx, arr) => p !== '...' || arr[idx - 1] !== '...')
+    return pages
 })
 
 const formatTime = (timestamp) => {
-    return timestamp.split(' ')[1] || timestamp
+    if (!timestamp) return ''
+    const parts = timestamp.split(' ')
+    if (parts.length < 2) return ''
+    const timePart = parts[1]
+    const [hStr, mStr] = timePart.split(':')
+    return `${hStr}:${mStr}`
 }
 
 const computeLateTime = (timestamp) => {
     if (!timestamp) return ''
     const parts = timestamp.split(' ')
     if (parts.length < 2) return ''
-    const timePart = parts[1] // HH:MM:SS
+    const timePart = parts[1]
     const [hStr, mStr, sStr] = timePart.split(':')
     const h = parseInt(hStr, 10)
     const m = parseInt(mStr, 10)
-    const s = parseInt(sStr, 10)
-    if ([h, m, s].some(v => isNaN(v))) return ''
-    const totalSeconds = h * 3600 + m * 60 + s
-    const baseSeconds = 8 * 3600 // 08:00:00
-    const diff = totalSeconds - baseSeconds
+    if ([h, m].some(v => isNaN(v))) return ''
+    const totalMinutes = h * 60 + m
+    const baseMinutes = 8 * 60
+    const diff = totalMinutes - baseMinutes
     if (diff <= 0) return ''
-    const dh = Math.floor(diff / 3600)
-    const dm = Math.floor((diff % 3600) / 60)
-    const ds = diff % 60
-    return `${String(dh).padStart(2, '0')}:${String(dm).padStart(2, '0')}:${String(ds).padStart(2, '0')}`
+    const dh = Math.floor(diff / 60)
+    const dm = diff % 60
+    return `${String(dh).padStart(2, '0')}.${String(dm).padStart(2, '0')}`
 }
 
 const viewImage = (image, isProfile = false) => {
@@ -215,4 +210,18 @@ const viewImage = (image, isProfile = false) => {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.join {
+    border-radius: 1.5rem;
+    box-shadow: 0 2px 8px 0 rgb(0 0 0 / 0.06);
+    background: #f8fafc;
+}
+
+.btn.bg-transparent {
+    background: transparent;
+}
+
+.bg-base-content\/20 {
+    background-color: #e5e7eb !important;
+}
+</style>

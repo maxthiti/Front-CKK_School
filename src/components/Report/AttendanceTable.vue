@@ -139,42 +139,23 @@
         </div>
     </div>
 
-    <div v-if="pagination.total_pages > 1" class="flex justify-center items-center gap-2 mt-6">
-        <button @click="$emit('page-change', 1)" class="btn btn-sm" :disabled="pagination.page === 1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-            </svg>
-        </button>
-        <button @click="$emit('page-change', pagination.page - 1)" class="btn btn-sm" :disabled="pagination.page === 1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-        </button>
-
-        <div class="flex gap-1">
-            <button v-for="page in visiblePages" :key="page" @click="$emit('page-change', page)"
-                :class="['btn btn-sm', page === pagination.page ? 'btn-primary' : '']">
+    <div v-if="pagination.total_pages > 1" class="flex justify-center mt-6">
+        <div class="join">
+            <button class="join-item btn btn-sm bg-transparent border-none"
+                @click="$emit('page-change', pagination.page - 1)" :disabled="pagination.page === 1">
+                «
+            </button>
+            <button v-for="page in displayedPages" :key="page" class="join-item btn btn-sm bg-transparent border-none"
+                :class="page === pagination.page ? 'bg-base-content/20 font-bold' : ''"
+                @click="$emit('page-change', page)">
                 {{ page }}
             </button>
+            <button class="join-item btn btn-sm bg-transparent border-none"
+                @click="$emit('page-change', pagination.page + 1)"
+                :disabled="pagination.page === pagination.total_pages">
+                »
+            </button>
         </div>
-
-        <button @click="$emit('page-change', pagination.page + 1)" class="btn btn-sm"
-            :disabled="pagination.page === pagination.total_pages">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-        </button>
-        <button @click="$emit('page-change', pagination.total_pages)" class="btn btn-sm"
-            :disabled="pagination.page === pagination.total_pages">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-            </svg>
-        </button>
     </div>
 
     <div v-if="pagination.total_items > 0" class="text-center text-sm text-base-content/60 mt-4">
@@ -250,6 +231,22 @@ const visiblePages = computed(() => {
     return pages.filter((p, idx, arr) => p !== '...' || arr[idx - 1] !== '...')
 })
 
+const displayedPages = computed(() => {
+    const total = props.pagination.total_pages
+    const current = props.pagination.page
+    const maxVisible = 5
+    let startPage = Math.max(1, current - Math.floor(maxVisible / 2))
+    let endPage = Math.min(total, startPage + maxVisible - 1)
+    if (endPage - startPage < maxVisible - 1) {
+        startPage = Math.max(1, endPage - maxVisible + 1)
+    }
+    const pages = []
+    for (let i = startPage; i <= endPage; i++) {
+        pages.push(i)
+    }
+    return pages
+})
+
 const extractEntryExit = (item) => {
     if (!item.attendances || item.attendances.length === 0) return { entry: null, exit: null }
     const attendance = item.attendances[0]
@@ -269,4 +266,19 @@ const extractEntryExit = (item) => {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+/* Optional: for more rounded and shadow look, you can adjust here */
+.join {
+    border-radius: 1.5rem;
+    box-shadow: 0 2px 8px 0 rgb(0 0 0 / 0.06);
+    background: #f8fafc;
+}
+
+.btn.bg-transparent {
+    background: transparent;
+}
+
+.bg-base-content\/20 {
+    background-color: #e5e7eb !important;
+}
+</style>

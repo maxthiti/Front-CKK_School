@@ -40,7 +40,7 @@
                             <span class="badge">New</span>
                         </a>
                     </li>
-                    <li><a>ตั้งค่า</a></li>
+                    <li><a @click="goToUpdatePassword">ตั้งค่ารหัสผ่าน</a></li>
                     <li><a @click="handleLogout">ออกจากระบบ</a></li>
                 </ul>
             </div>
@@ -49,9 +49,13 @@
 </template>
 
 <script setup>
+const goToUpdatePassword = () => {
+    router.push('/update-password')
+}
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import Swal from 'sweetalert2'
 
 const route = useRoute()
 const router = useRouter()
@@ -73,21 +77,32 @@ const toggleMobileMenu = () => {
     emit('toggleMobileMenu')
 }
 
-const handleLogout = () => {
-    authStore.logout()
-    localStorage.removeItem('profileName')
-    localStorage.removeItem('profilePicture')
-    localStorage.removeItem('residentRole')
-    router.push('/')
+const handleLogout = async () => {
+    const result = await Swal.fire({
+        title: 'ยืนยันการออกจากระบบ',
+        text: 'คุณต้องการออกจากระบบใช่หรือไม่?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'ออกจากระบบ',
+        cancelButtonText: 'ยกเลิก',
+        reverseButtons: true
+    })
+    if (result.isConfirmed) {
+        authStore.logout()
+        localStorage.removeItem('profileName')
+        localStorage.removeItem('profilePicture')
+        localStorage.removeItem('residentRole')
+        localStorage.removeItem('classroom')
+        localStorage.removeItem('grade')
+        router.push('/')
+    }
 }
 
 const profileName = ref(localStorage.getItem('profileName') || '')
 const profilePicture = ref(localStorage.getItem('profilePicture') || '')
 
-// ถ้า profilePicture เป็น path ให้เติม base url
 const profilePictureUrl = computed(() => {
     if (!profilePicture.value) return ''
-    // ปรับตาม env ของคุณ
     const baseUrl = import.meta.env.VITE_IMG_PROFILE_URL || ''
     return profilePicture.value.startsWith('http')
         ? profilePicture.value

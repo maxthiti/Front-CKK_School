@@ -184,9 +184,14 @@ const availableGrades = computed(() => {
 })
 
 watch(() => auth.user?.role, (role) => {
-    if (role === 'teacher' && props.fixedGrade && props.fixedClassroom) {
-        formData.value.grade = props.fixedGrade
-        formData.value.classroom = props.fixedClassroom
+    if (role === 'teacher') {
+        if (props.fixedGrade && props.fixedClassroom) {
+            formData.value.grade = props.fixedGrade
+            formData.value.classroom = props.fixedClassroom
+        } else {
+            formData.value.grade = localStorage.getItem('grade') || ''
+            formData.value.classroom = localStorage.getItem('classroom') || ''
+        }
     }
 })
 

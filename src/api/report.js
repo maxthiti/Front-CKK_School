@@ -5,22 +5,24 @@ const baseUrl = import.meta.env.VITE_APP_BASE_URL;
 const getAttendanceReport = async (params) => {
   try {
     const token = localStorage.getItem("token");
+    const queryParams = {
+      start: params.start,
+      end: params.end,
+      role: params.role,
+      name: params.name || "",
+      department: params.department || "",
+      userid: params.userid || "",
+      page: params.page || 1,
+      limit: params.limit || 20,
+    };
+    if (params.grade) queryParams.grade = params.grade;
+    if (params.classroom) queryParams.classroom = params.classroom;
+
     const response = await axios.get(`${baseUrl}report/attendance`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      params: {
-        start: params.start,
-        end: params.end,
-        role: params.role,
-        name: params.name || "",
-        department: params.department || "",
-        userid: params.userid || "",
-        page: params.page || 1,
-        limit: params.limit || 20,
-        grade: params.grade || "",
-        classroom: params.classroom,
-      },
+      params: queryParams,
     });
     return response.data;
   } catch (error) {

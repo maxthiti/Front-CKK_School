@@ -4,27 +4,19 @@ const BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 
 export class PositionService {
   constructor() {
-    this.api = axios.create({
-      baseURL: BASE_URL,
-    });
-
-    this.api.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem("token");
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
+    this.baseUrl = import.meta.env.VITE_APP_BASE_URL;
+    this.token = localStorage.getItem("token");
   }
 
   async getPositions() {
     try {
-      const response = await this.api.get("/position");
+      const response = await axios({
+        method: "get",
+        url: `${this.baseUrl}position`,
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+      });
       return response.data;
     } catch (error) {
       console.error("Get positions error:", error);
@@ -34,7 +26,15 @@ export class PositionService {
 
   async createPosition(name) {
     try {
-      const response = await this.api.post("/position", { name });
+      const response = await axios({
+        method: "post",
+        url: `${this.baseUrl}position`,
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+          "Content-Type": "application/json",
+        },
+        data: { name },
+      });
       return response.data;
     } catch (error) {
       console.error("Create position error:", error);
@@ -42,19 +42,15 @@ export class PositionService {
     }
   }
 
-  async updatePosition(id, name) {
-    try {
-      const response = await this.api.put(`/position/${id}`, { name });
-      return response.data;
-    } catch (error) {
-      console.error("Update position error:", error);
-      throw error;
-    }
-  }
-
   async deletePosition(id) {
     try {
-      const response = await this.api.delete(`/position/${id}`);
+      const response = await axios({
+        method: "delete",
+        url: `${this.baseUrl}position/${id}`,
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+      });
       return response.data;
     } catch (error) {
       console.error("Delete position error:", error);

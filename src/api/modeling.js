@@ -1,11 +1,13 @@
 import axios from "axios";
 
-const API_URL = "https://solutiondd.ruijieddns.com/ckk_api/modeling";
-
 class ModelingService {
+  constructor() {
+    this.baseUrl = import.meta.env.VITE_APP_BASE_URL;
+    this.token = localStorage.getItem("token");
+  }
+
   async getModelings(params = {}) {
     try {
-      const token = localStorage.getItem("token");
       const queryParams = new URLSearchParams({
         role: params.role || "student",
         name: params.name || "",
@@ -15,12 +17,14 @@ class ModelingService {
         page: params.page || 1,
         limit: params.limit || 10,
       });
-
-      const response = await axios.get(`${API_URL}?${queryParams}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        `${this.baseUrl}modeling?${queryParams}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        }
+      );
       return response.data;
     } catch (error) {
       console.error("Error fetching modelings:", error);
@@ -30,10 +34,9 @@ class ModelingService {
 
   async createModeling(data) {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(API_URL, data, {
+      const response = await axios.post(`${this.baseUrl}modeling`, data, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${this.token}`,
           "Content-Type": "application/json",
         },
       });
@@ -46,13 +49,12 @@ class ModelingService {
 
   async updateModeling(modelingId) {
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.patch(
-        `${API_URL}/${modelingId}/remodeling`,
+        `${this.baseUrl}modeling/${modelingId}/remodeling`,
         {},
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${this.token}`,
           },
         }
       );
@@ -65,12 +67,14 @@ class ModelingService {
 
   async deleteModeling(modelingId) {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.delete(`${API_URL}/${modelingId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.delete(
+        `${this.baseUrl}modeling/${modelingId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        }
+      );
       return response.data;
     } catch (error) {
       console.error("Error deleting modeling:", error);

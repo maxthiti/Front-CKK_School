@@ -1,30 +1,20 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_APP_BASE_URL;
-
 export class DepartmentService {
   constructor() {
-    this.api = axios.create({
-      baseURL: BASE_URL,
-    });
-
-    this.api.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem("token");
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
+    this.baseUrl = import.meta.env.VITE_APP_BASE_URL;
+    this.token = localStorage.getItem("token");
   }
 
   async getDepartments() {
     try {
-      const response = await this.api.get("/department");
+      const response = await axios({
+        method: "get",
+        url: `${this.baseUrl}department`,
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+      });
       return response.data;
     } catch (error) {
       console.error("Get departments error:", error);
@@ -34,7 +24,15 @@ export class DepartmentService {
 
   async createDepartment(name) {
     try {
-      const response = await this.api.post("/department", { name });
+      const response = await axios({
+        method: "post",
+        url: `${this.baseUrl}department`,
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+          "Content-Type": "application/json",
+        },
+        data: { name },
+      });
       return response.data;
     } catch (error) {
       console.error("Create department error:", error);
@@ -42,19 +40,15 @@ export class DepartmentService {
     }
   }
 
-  async updateDepartment(id, name) {
-    try {
-      const response = await this.api.put(`/department/${id}`, { name });
-      return response.data;
-    } catch (error) {
-      console.error("Update department error:", error);
-      throw error;
-    }
-  }
-
   async deleteDepartment(id) {
     try {
-      const response = await this.api.delete(`/department/${id}`);
+      const response = await axios({
+        method: "delete",
+        url: `${this.baseUrl}department/${id}`,
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+      });
       return response.data;
     } catch (error) {
       console.error("Delete department error:", error);

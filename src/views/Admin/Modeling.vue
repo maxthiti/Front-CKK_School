@@ -1,7 +1,7 @@
 <template>
     <div class="space-y-6">
         <div class="flex justify-between items-center">
-            <h1 class="text-3xl font-bold text-primary">จัดการโมเดล</h1>
+            <h1 class="text-lg md:text-3xl font-bold text-primary">จัดการโมเดล</h1>
             <CreateModeling v-if="auth.user?.role !== 'teacher'" @created="fetchData" />
         </div>
 
@@ -72,26 +72,26 @@
         <div v-else>
             <ModelingTable :data="modelings" :page="currentPage" :limit="filters.limit" @updated="fetchData" />
 
+            <div v-if="totalPages > 1" class="flex justify-center mt-6">
+                <div class="join">
+                    <button class="join-item btn btn-sm bg-transparent border-none" @click="changePage(currentPage - 1)"
+                        :disabled="currentPage === 1">
+                        «
+                    </button>
+                    <button v-for="page in visiblePages" :key="page"
+                        class="join-item btn btn-sm bg-transparent border-none"
+                        :class="page === currentPage ? 'bg-base-content/20 font-bold' : ''" @click="changePage(page)">
+                        {{ page }}
+                    </button>
+                    <button class="join-item btn btn-sm bg-transparent border-none" @click="changePage(currentPage + 1)"
+                        :disabled="currentPage === totalPages">
+                        »
+                    </button>
+                </div>
+            </div>
             <div class="flex flex-col items-center gap-4 mt-6">
                 <div class="text-sm text-base-content/60">
                     ทั้งหมด {{ totalItems }} รายการ (หน้า {{ currentPage }} / {{ totalPages }})
-                </div>
-                <div class="flex justify-center gap-2">
-                    <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1" class="btn btn-sm">
-                        ก่อนหน้า
-                    </button>
-
-                    <button v-for="page in visiblePages" :key="page" @click="changePage(page)" :class="[
-                        'btn btn-sm',
-                        currentPage === page ? 'btn-primary' : 'btn-ghost',
-                    ]">
-                        {{ page }}
-                    </button>
-
-                    <button @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages"
-                        class="btn btn-sm">
-                        ถัดไป
-                    </button>
                 </div>
             </div>
         </div>
@@ -190,4 +190,18 @@ onMounted(() => {
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+.join {
+    border-radius: 1.5rem;
+    box-shadow: 0 2px 8px 0 rgb(0 0 0 / 0.06);
+    background: #f8fafc;
+}
+
+.btn.bg-transparent {
+    background: transparent;
+}
+
+.bg-base-content\/20 {
+    background-color: #e5e7eb !important;
+}
+</style>
