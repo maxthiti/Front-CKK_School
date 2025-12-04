@@ -1,0 +1,191 @@
+<template>
+    <div>
+        <div class="flex flex-wrap gap-2 mb-4 items-center">
+            <input v-model="searchText" @keyup.enter="handleSearch" type="text" class="input input-sm input-bordered"
+                placeholder="ค้นหาชื่อหรือรหัส" style="width: 180px;" />
+            <select v-if="props.role !== 'teacher'" v-model="selectedGrade" @change="handleGradeChange"
+                class="select select-sm select-bordered">
+                <option value="">เลือกชั้น</option>
+                <option v-for="grade in grades" :key="grade" :value="grade">{{ grade }}</option>
+            </select>
+            <select v-if="props.role !== 'teacher'" v-model="selectedClassroom" @change="handleClassroomChange"
+                class="select select-sm select-bordered">
+                <option value="">เลือกห้อง</option>
+                <option v-for="room in classrooms" :key="room" :value="room">{{ room }}</option>
+            </select>
+            <button class="btn btn-sm btn-primary" @click="handleSearch">ค้นหา</button>
+        </div>
+        <div class="bg-base-100 rounded-lg shadow-lg overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr class="bg-primary text-primary-content">
+                        <th>รหัส</th>
+                        <th>ชื่อ</th>
+                        <th>ตำแหน่ง</th>
+                        <th v-if="props.role !== 'teacher'">ชั้น</th>
+                        <th>เวลาเข้า</th>
+                        <th>รูปเข้า</th>
+                        <th>ดูรายละเอียด</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-if="loading">
+                        <td colspan="7" class="text-center">กำลังโหลดข้อมูล...</td>
+                    </tr>
+                    <tr v-if="!loading && data.length === 0">
+                        <td colspan="7" class="text-center">ไม่พบข้อมูล</td>
+                    </tr>
+                    <tr v-for="item in data" :key="item._id">
+                        <td>{{ item.userid }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.position }}</td>
+                        <td v-if="props.role !== 'teacher'">{{ item.department || `${item.grade}/${item.classroom}` }}
+                        </td>
+                        <td>{{ getEntryTime(item) }}</td>
+                        <td>
+                            <img v-if="getEntryImage(item)" :src="imgBaseUrl + getEntryImage(item)" alt="entry"
+                                class="w-16 h-16 object-cover rounded" @error="item.attendance[0].imageUrl = null" />
+                            <span v-else class="text-gray-400">โหลดรูปไม่สำเร็จ</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-info" @click="viewDetail(item)">ดูรายละเอียด</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div v-if="pagination.total_pages > 1" class="flex justify-center mt-4">
+            <button class="btn btn-sm" @click="changePage(pagination.page - 1)"
+                :disabled="pagination.page === 1">«</button>
+            <button v-for="page in displayedPages" :key="page" class="btn btn-sm"
+                :class="{ 'btn-active': page === pagination.page }" @click="changePage(page)">{{ page }}</button>
+            <button class="btn btn-sm" @click="changePage(pagination.page + 1)"
+                :disabled="pagination.page === pagination.total_pages">»</button>
+        </div>
+        <DetailAttendance ref="detailRef" :role="props.role" />
+    </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import DetailAttendance from './DetailAttendance.vue'
+import reportApi from '../../api/report.js'
+import { ClassRoomService } from '../../api/class-room.js'
+const imgBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
+const data = ref([])
+const loading = ref(false)
+const pagination = ref({ page: 1, limit: 5, total_items: 0, total_pages: 1 })
+const detailRef = ref(null)
+const props = defineProps({ role: { type: String, default: 'student' } })
+
+const searchText = ref('')
+const selectedGrade = ref('')
+const selectedClassroom = ref('')
+const grades = ref([])
+const classrooms = ref([])
+const allClassrooms = ref([])
+async function fetchClassRooms() {
+    const service = new ClassRoomService()
+    try {
+        const res = await service.getClassRooms()
+        if (res.message === 'Success' && res.data) {
+            allClassrooms.value = res.data
+            grades.value = [...new Set(res.data.map(c => c.grade))]
+        }
+    } catch (e) {
+        grades.value = []
+        allClassrooms.value = []
+    }
+}
+
+function handleGradeChange() {
+    selectedClassroom.value = ''
+    if (!selectedGrade.value) {
+        classrooms.value = []
+        return
+    }
+    const filtered = allClassrooms.value.filter(c => c.grade === selectedGrade.value)
+    classrooms.value = [...new Set(filtered.map(c => c.classroom))]
+}
+
+function handleClassroomChange() {
+    // ไม่ต้องทำอะไรเพิ่ม
+}
+
+function handleSearch() {
+    fetchData(1)
+}
+
+const displayedPages = computed(() => {
+    const total = pagination.value.total_pages
+    const current = pagination.value.page
+    const maxVisible = 5
+    let startPage = Math.max(1, current - Math.floor(maxVisible / 2))
+    let endPage = Math.min(total, startPage + maxVisible - 1)
+    if (endPage - startPage < maxVisible - 1) {
+        startPage = Math.max(1, endPage - maxVisible + 1)
+    }
+    const pages = []
+    for (let i = startPage; i <= endPage; i++) {
+        pages.push(i)
+    }
+    return pages
+})
+
+function getEntryTime(item) {
+    if (!item.attendance || item.attendance.length === 0) return '-'
+    const ts = item.attendance[0].timeStamp || item.attendance[0].timeStamps?.[0]?.timestamp
+    return ts ? ts.split(' ')[1] : '-'
+}
+function getEntryImage(item) {
+    if (!item.attendance || item.attendance.length === 0) return ''
+    return item.attendance[0].imageUrl || item.attendance[0].timeStamps?.[0]?.image || ''
+}
+function viewDetail(item) {
+    detailRef.value?.openModal(item)
+}
+
+async function fetchData(page = 1) {
+    loading.value = true
+    try {
+        let params = {
+            date: '2025-11-04',
+            role: props.role,
+            name: '',
+            department: '',
+            userid: '',
+            page,
+            limit: 5,
+            grade: selectedGrade.value,
+            classroom: selectedClassroom.value || 0
+        }
+        if (searchText.value) {
+            params.page = 1
+            if (/^\d+$/.test(searchText.value)) {
+                params.userid = searchText.value
+            } else {
+                params.name = searchText.value
+            }
+        }
+        const result = await reportApi.getCommingPersonReport(params)
+        data.value = result.data || []
+        pagination.value.page = result.page || page
+        pagination.value.limit = result.limit || 5
+        pagination.value.total_items = result.total_items || (result.data?.length || 0)
+        pagination.value.total_pages = result.total_pages || 1
+    } catch (e) {
+        data.value = []
+    } finally {
+        loading.value = false
+    }
+}
+function changePage(page) {
+    if (page >= 1 && page <= pagination.value.total_pages) {
+        fetchData(page)
+    }
+}
+onMounted(() => {
+    fetchClassRooms()
+    fetchData(1)
+})
+</script>

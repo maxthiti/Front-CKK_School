@@ -28,7 +28,7 @@
                     <input type="file" accept="image/*" multiple @change="onImagesChange"
                         class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
                     <p v-if="imageFiles.length" class="text-xs text-success mt-1">รูปภาพที่เลือก: {{ imageFiles.length
-                    }} ไฟล์</p>
+                        }} ไฟล์</p>
                     <p class="text-xs text-gray-500 mt-1">กรุณาตั้งชื่อไฟล์รูปภาพเป็นรหัสนักเรียน เช่น <b>6200.jpg</b>
                         เพื่อให้ระบบแมปข้อมูลอัตโนมัติ</p>
                 </div>
@@ -68,7 +68,7 @@
                             </tr>
                             <tr v-if="previewData.length > 10">
                                 <td colspan="7" class="text-center italic text-sm">... และอีก {{ previewData.length - 10
-                                    }} รายการ</td>
+                                }} รายการ</td>
                             </tr>
                         </tbody>
                     </table>
@@ -90,6 +90,11 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+import { StudentService } from '../../api/student'
+import * as XLSX from 'xlsx'
+import Swal from 'sweetalert2'
+
 async function resizeImage(file, maxSizeKB = 70, maxWidth = 300, maxHeight = 300) {
     return new Promise((resolve, reject) => {
         const img = new window.Image();
@@ -129,10 +134,6 @@ async function resizeImage(file, maxSizeKB = 70, maxWidth = 300, maxHeight = 300
         reader.readAsDataURL(file);
     });
 }
-import { ref } from 'vue'
-import { StudentService } from '../../api/student'
-import * as XLSX from 'xlsx'
-import Swal from 'sweetalert2'
 
 function mapHeader(header, row) {
     const keys = Object.keys(row)
@@ -176,7 +177,6 @@ function onExcelChange(e) {
 function onImagesChange(e) {
     imageFiles.value = Array.from(e.target.files)
     e.target.value = null
-    // รีเฟรช preview ถ้ามีข้อมูล Excel อยู่แล้ว
     if (excelFile.value) {
         previewExcel()
     }
@@ -191,7 +191,6 @@ function previewExcel() {
     isPreviewing.value = true
     previewData.value = []
 
-    // เตรียม imageFiles map สำหรับ preview
     const getImageName = (userid) => {
         userid = userid?.toString().trim();
         const found = imageFiles.value.find(file => file.name.split('.')[0].toString().trim() === userid);
@@ -248,19 +247,16 @@ async function handleImport() {
     isImporting.value = true
     try {
         const imageMap = {};
-        // รีไซส์รูปภาพทุกไฟล์ก่อน import
         for (const file of imageFiles.value) {
             const baseName = file.name.split('.')[0];
             if (file.type.match('image/jpeg') || file.type.match('image/jpg')) {
                 try {
                     const resizedBlob = await resizeImage(file, 70, 300, 300);
                     if (resizedBlob.size > 70 * 1024) {
-                        // ถ้าเกิน 70KB หลังรีไซส์ ไม่ใช้
                         continue;
                     }
                     imageMap[baseName] = new File([resizedBlob], file.name, { type: 'image/jpeg' });
                 } catch (err) {
-                    // ถ้ารีไซส์ไม่ได้ ไม่ใช้
                 }
             }
         }
@@ -282,7 +278,14 @@ async function handleImport() {
                     importedStudents.push(response.data);
                 }
             } catch (err) {
-                console.error(`Error importing student ${student.userid}:`, err);
+                const apiError = err?.response?.data;
+                if (apiError?.message === 'Duplicate data' && apiError?.error?.includes('duplicate teacher userid')) {
+                    const duplicateId = student.userid;
+                    Swal.fire('ข้อผิดพลาด', `รหัส ${duplicateId} มีคนใช้งานแล้ว กรุณาตรวจสอบข้อมูลในไฟล์ Excel`, 'error');
+                    break;
+                } else {
+                    console.error(`Error importing student ${student.userid}:`, err);
+                }
             }
         }
 

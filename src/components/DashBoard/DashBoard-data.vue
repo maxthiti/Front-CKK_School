@@ -14,33 +14,13 @@
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
                 <h3 class="font-bold text-lg mb-4">รายการเข้าเรียน{{ attendanceRole === 'teacher' ? 'ครู' : 'นักเรียน'
-                }} วันที่ {{ displayDate }}</h3>
-
-                <div class="flex gap-2 mb-4" v-if="attendanceRole === 'student'">
-                    <div v-if="residentRole !== 'teacher'" class="form-control">
-                        <label class="label py-1">
-                            <span class="label-text text-sm font-medium">ชั้นปี</span>
-                        </label>
-                        <select v-model="attendanceGrade" class="select select-sm select-bordered w-full"
-                            @change="handleGradeChange">
-                            <option v-for="grade in availableGrades" :key="grade" :value="grade">{{ grade }}</option>
-                        </select>
-                    </div>
-                    <div v-if="residentRole !== 'teacher'" class="form-control">
-                        <label class="label py-1">
-                            <span class="label-text text-sm font-medium">ห้อง</span>
-                        </label>
-                        <select v-model.number="attendanceClassroom" class="select select-sm select-bordered w-full"
-                            @change="reloadAttendance" :disabled="!attendanceGrade">
-                            <option v-for="classroom in availableClassrooms" :key="classroom" :value="classroom">{{
-                                classroom }}</option>
-                        </select>
-                    </div>
+                    }} วันที่ {{ displayDate }}</h3>
+                <div v-if="attendanceRole === 'student'">
+                    <Attendance :role="'student'" />
                 </div>
-
-                <AttendanceTable :data="attendanceData" :pagination="attendancePagination" @viewDetail="viewDetail"
-                    @page-change="handlePageChange" />
-
+                <div v-else>
+                    <Attendance :role="'teacher'" />
+                </div>
             </div>
             <form method="dialog" class="modal-backdrop">
                 <button>close</button>
@@ -205,6 +185,7 @@ import AttendanceTable from '../Report/AttendanceTable.vue'
 import LateTable from '../Report/LateTable.vue'
 import MissedTable from '../Report/MissedTable.vue'
 import AttendanceDetail from '../Report/AttendanceDetail.vue'
+import Attendance from './Attendance.vue'
 
 const emit = defineEmits(['dateChange'])
 

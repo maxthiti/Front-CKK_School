@@ -3,7 +3,7 @@
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h2 class="text-2xl font-bold text-white">จัดการนักเรียน</h2>
             <div class="flex gap-2">
-                <button v-if="auth.user?.role !== 'teacher'" class="btn btn-success" @click="openImportModal">
+                <button v-if="auth.user?.role !== 'teacher'" class="btn btn-success btn-sm" @click="openImportModal">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -13,7 +13,7 @@
                     </svg>
                     นำเข้า Excel
                 </button>
-                <button class="btn btn-primary" @click="openCreateModal">
+                <button class="btn btn-primary btn-sm" @click="openCreateModal">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />

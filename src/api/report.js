@@ -91,6 +91,32 @@ const getStrangerReport = async (params) => {
   }
 };
 
+const getCommingPersonReport = async (params) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${baseUrl}report/commingperson`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        date: params.date,
+        role: params.role,
+        name: params.name || "",
+        department: params.department || "",
+        userid: params.userid || "",
+        page: params.page || 1,
+        limit: params.limit || 5,
+        grade: params.grade || "",
+        classroom: params.classroom || 0,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching commingperson report:", error);
+    throw error;
+  }
+};
+
 export default {
   getAttendanceReport,
   getLateReport,
@@ -109,4 +135,5 @@ export default {
       throw error;
     }
   },
+  getCommingPersonReport,
 };

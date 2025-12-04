@@ -2,13 +2,25 @@
     <div class="space-y-6">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h2 class="text-2xl font-bold text-white">จัดการบุคลากร</h2>
-            <button v-if="auth.user?.role !== 'teacher'" @click="openCreateModal" class="btn btn-primary btn-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                เพิ่มบุคลากร
-            </button>
+            <div class="flex gap-2">
+                <button v-if="auth.user?.role !== 'teacher'" class="btn btn-success btn-sm" @click="openImportModal">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 10v6a2 2 0 002 2h14a2 2 0 002-2v-6" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 10l4 4m0 0l4-4m-4 4V4" />
+                    </svg>
+                    นำเข้า Excel
+                </button>
+                <button v-if="auth.user?.role !== 'teacher'" @click="openCreateModal" class="btn btn-primary btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    เพิ่มบุคลากร
+                </button>
+            </div>
         </div>
 
         <div class="card bg-base-100 shadow-md">
@@ -75,6 +87,8 @@
         <CreateModal ref="createModalRef" :departments="departments" :positions="positions"
             @success="handleCreateSuccess" />
 
+        <ImportExcalModal ref="importModalRef" @success="handleImportSuccess" />
+
         <DeleteModal ref="deleteModalRef" @success="handleDeleteSuccess" />
 
         <RePasswordModal ref="rePasswordModalRef" @success="fetchTeachers" />
@@ -82,6 +96,17 @@
 </template>
 
 <script setup>
+import ImportExcalModal from '../../components/ListTeacher/ImportExcal.vue'
+const importModalRef = ref(null)
+const openImportModal = () => {
+    importModalRef.value?.openModal()
+}
+
+const handleImportSuccess = async (importedTeachers) => {
+    if (Array.isArray(importedTeachers)) {
+        await fetchTeachers()
+    }
+}
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 const route = useRoute()
