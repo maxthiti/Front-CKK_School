@@ -76,7 +76,10 @@ const data = ref([])
 const loading = ref(false)
 const pagination = ref({ page: 1, limit: 5, total_items: 0, total_pages: 1 })
 const detailRef = ref(null)
-const props = defineProps({ role: { type: String, default: 'student' } })
+const props = defineProps({
+    role: { type: String, default: 'student' },
+    date: { type: String, default: '' }
+})
 
 const searchText = ref('')
 const selectedGrade = ref('')
@@ -109,7 +112,6 @@ function handleGradeChange() {
 }
 
 function handleClassroomChange() {
-    // ไม่ต้องทำอะไรเพิ่ม
 }
 
 function handleSearch() {
@@ -149,7 +151,7 @@ async function fetchData(page = 1) {
     loading.value = true
     try {
         let params = {
-            date: '2025-11-04',
+            date: props.date || '2025-11-04',
             role: props.role,
             name: '',
             department: '',
@@ -184,8 +186,16 @@ function changePage(page) {
         fetchData(page)
     }
 }
+
+import { watch } from 'vue'
 onMounted(() => {
     fetchClassRooms()
     fetchData(1)
+})
+
+watch(() => props.date, (newDate, oldDate) => {
+    if (newDate !== oldDate) {
+        fetchData(1)
+    }
 })
 </script>

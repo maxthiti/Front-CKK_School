@@ -14,12 +14,12 @@
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
                 <h3 class="font-bold text-lg mb-4">รายการเข้าเรียน{{ attendanceRole === 'teacher' ? 'ครู' : 'นักเรียน'
-                    }} วันที่ {{ displayDate }}</h3>
+                }} วันที่ {{ displayDate }}</h3>
                 <div v-if="attendanceRole === 'student'">
-                    <Attendance :role="'student'" />
+                    <Attendance :role="'student'" :date="selectedDate" />
                 </div>
                 <div v-else>
-                    <Attendance :role="'teacher'" />
+                    <Attendance :role="'teacher'" :date="selectedDate" />
                 </div>
             </div>
             <form method="dialog" class="modal-backdrop">
