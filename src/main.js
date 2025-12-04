@@ -7,7 +7,7 @@ import router from "./routes";
 import { createPinia } from "pinia";
 import { useAuthStore } from "./stores/auth";
 import axios from "axios";
-import { UserService } from "./api/user.js";
+import { UserService } from "./api/User.js";
 
 const app = createApp(App);
 

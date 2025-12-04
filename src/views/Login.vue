@@ -76,7 +76,7 @@ import { reactive, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useAuthStore } from '../stores/auth'
-import { UserService } from '../api/user.js'
+import { UserService } from '../api/User.js'
 import logoUrl from '../assets/Chakkam_Khanathon_School_logo.png'
 
 const router = useRouter()
