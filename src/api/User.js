@@ -15,8 +15,7 @@ export class UserService {
         }
       );
     } catch (e) {
-      // ไม่ต้อง throw error
-    }
+      console.error("Error revoking refresh token:", e);}
     localStorage.removeItem("refresh_token");
   }
   async refreshToken() {
