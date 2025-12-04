@@ -14,7 +14,7 @@
                 <select v-model="filters.device_sn" @change="handleDeviceChange"
                     class="select select-sm select-bordered w-full max-w-xs">
                     <option value="">ทั้งหมด</option>
-                    <option v-for="device in devices" :key="device._id" :value="device.sn">
+                    <option v-for="device in devices" :key="device._id" :value="device.serial_number">
                         {{ device.location }}
                     </option>
                 </select>
@@ -57,7 +57,7 @@
                 </div>
             </div>
 
-            <div v-if="totalRecords > 0" class="text-center text-sm text-base-content/60 mt-4">
+            <div v-if="totalRecords > 0" class="text-center text-sm text-base-content/60 mt-4 text-white">
                 แสดง {{ startItem }} - {{ endItem }} จาก {{ totalRecords }} รายการ
             </div>
         </div>
