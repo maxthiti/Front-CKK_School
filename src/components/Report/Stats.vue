@@ -86,7 +86,8 @@
                     <div class="card bg-warning/100 shadow-sm p-3">
                         <div class="text-xs font-medium text-white">วันที่สายมากที่สุด</div>
                         <div class="text-lg font-bold text-primary">{{ primary.stats.maxLateDay.date }}</div>
-                        <div class="text-xs text-base-content/70 text-white">{{ primary.stats.maxLateDay.late }} คน</div>
+                        <div class="text-xs text-base-content/70 text-white">{{ primary.stats.maxLateDay.late }} คน
+                        </div>
                     </div>
                 </div>
 
@@ -502,16 +503,15 @@ function buildPrimaryChart() {
     })
 
     const { primary: primaryColor, secondary: secondaryColor } = getThemeColors()
-    const red = 'rgba(220, 38, 38, 0.9)'
-    const redLight = 'rgba(248, 113, 113, 0.9)'
+    const black = 'rgba(0,0,0,0.85)'
     const blue = 'rgba(59, 130, 246, 0.9)'
     const yellow = 'rgba(234, 179, 8, 0.9)'
 
     let datasets = [
         { label: 'นักเรียน (ตรงเวลา)', data: studentOntime, backgroundColor: primaryColor, borderColor: primaryColor, stack: 'student' },
-        { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: red, borderColor: red, stack: 'student' },
+        { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: black, borderColor: black, stack: 'student' },
         { label: 'ครู (ตรงเวลา)', data: teacherOntime, backgroundColor: secondaryColor, borderColor: secondaryColor, stack: 'teacher' },
-        { label: 'ครู (สาย)', data: teacherLate, backgroundColor: redLight, borderColor: redLight, stack: 'teacher' }
+        { label: 'ครู (สาย)', data: teacherLate, backgroundColor: black, borderColor: black, stack: 'teacher' }
     ]
 
     if (primary.value.chartType === 'line') {
@@ -611,8 +611,7 @@ function buildCompareChart() {
     })
 
     const { primary: primaryColor, secondary: secondaryColor } = getThemeColors()
-    const red = 'rgba(220, 38, 38, 0.9)'
-    const redLight = 'rgba(248, 113, 113, 0.9)'
+    const black = 'rgba(0,0,0,0.85)'
     const blue = 'rgba(59, 130, 246, 0.9)'
     const blueLight = 'rgba(147, 197, 253, 0.9)'
     const yellow = 'rgba(234, 179, 8, 0.9)'
@@ -620,9 +619,9 @@ function buildCompareChart() {
 
     let datasets = [
         { label: 'นักเรียน (ตรงเวลา)', data: studentOntime, backgroundColor: primaryColor, borderColor: primaryColor, stack: 'student' },
-        { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: red, borderColor: red, stack: 'student' },
+        { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: black, borderColor: black, stack: 'student' },
         { label: 'ครู (ตรงเวลา)', data: teacherOntime, backgroundColor: secondaryColor, borderColor: secondaryColor, stack: 'teacher' },
-        { label: 'ครู (สาย)', data: teacherLate, backgroundColor: redLight, borderColor: redLight, stack: 'teacher' }
+        { label: 'ครู (สาย)', data: teacherLate, backgroundColor: black, borderColor: black, stack: 'teacher' }
     ]
 
     if (compare.value.chartType === 'line') {

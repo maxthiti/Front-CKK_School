@@ -206,6 +206,7 @@ function buildBarChart(start, end) {
     const { primary, primaryLight, secondary, secondaryLight } = getThemeColors()
     const red = 'rgba(220, 38, 38, 0.9)'
     const redLight = 'rgba(248, 113, 113, 0.9)'
+    const black = 'rgba(0,0,0,0.85)'
 
     barChart = new ChartLib(barChartRef.value, {
         type: 'bar',
@@ -213,9 +214,11 @@ function buildBarChart(start, end) {
             labels: weekdayLabels,
             datasets: [
                 { label: 'นักเรียน (ตรงเวลา)', data: studentOntime, backgroundColor: primary, borderColor: primary, stack: 'student' },
-                { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: red, borderColor: red, stack: 'student' },
+                // { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: red, borderColor: red, stack: 'student' },
+                { label: 'นักเรียน (สาย)', data: studentLate, backgroundColor: black, borderColor: black, stack: 'student' },
                 { label: 'ครู (ตรงเวลา)', data: teacherOntime, backgroundColor: secondary, borderColor: secondary, stack: 'teacher' },
-                { label: 'ครู (สาย)', data: teacherLate, backgroundColor: redLight, borderColor: redLight, stack: 'teacher' }
+                // { label: 'ครู (สาย)', data: teacherLate, backgroundColor: redLight, borderColor: redLight, stack: 'teacher' }
+                { label: 'ครู (สาย)', data: teacherLate, backgroundColor: black, borderColor: black, stack: 'teacher' }
             ]
         },
         options: {
