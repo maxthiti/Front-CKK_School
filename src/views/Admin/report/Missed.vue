@@ -121,7 +121,6 @@ const isNumericSearch = computed(() => /^\d+$/.test(filters.value.search.trim())
 
 const filteredData = computed(() => {
     let base = missedData.value
-    // ถ้าเป็นครู กรองเฉพาะนักเรียนในชั้น/ห้องนั้น
     if (residentRole === 'teacher' && teacherGrade && teacherClassroom) {
         base = base.filter(item => item.position === 'นักเรียน' && item.grade === teacherGrade && item.classroom == teacherClassroom)
     }

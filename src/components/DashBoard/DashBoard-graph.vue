@@ -105,12 +105,12 @@ const weekLabel = computed(() => {
     return `${formatDateThai(monday)} - ${formatDateThai(sunday)}`
 })
 
-function navigateWeek(direction) {
-    const monday = getMonday(currentWeekStart.value)
-    monday.setDate(monday.getDate() + (direction * 7))
-    currentWeekStart.value = monday
-    fetchDailyStats()
-}
+// function navigateWeek(direction) {
+//     const monday = getMonday(currentWeekStart.value)
+//     monday.setDate(monday.getDate() + (direction * 7))
+//     currentWeekStart.value = monday
+//     fetchDailyStats()
+// }
 
 async function fetchDailyStats() {
     loading.value = true
@@ -128,8 +128,8 @@ async function fetchDailyStats() {
 
             const studentData = rawStats.value.find(s => s.role === 'student' && s.date === selectedDate.value)
             const teacherData = rawStats.value.find(s => s.role === 'teacher' && s.date === selectedDate.value)
-            const studentTotal = studentData ? studentData.total : 0
-            const teacherTotal = teacherData ? teacherData.total : 0
+            // const studentTotal = studentData ? studentData.total : 0
+            // const teacherTotal = teacherData ? teacherData.total : 0
 
             await fetchStrangerData()
             buildBarChart(start, end)
@@ -204,8 +204,8 @@ function buildBarChart(start, end) {
     })
 
     const { primary, primaryLight, secondary, secondaryLight } = getThemeColors()
-    const red = 'rgba(220, 38, 38, 0.9)'
-    const redLight = 'rgba(248, 113, 113, 0.9)'
+    // const red = 'rgba(220, 38, 38, 0.9)'
+    // const redLight = 'rgba(248, 113, 113, 0.9)'
     const black = 'rgba(0,0,0,0.85)'
 
     barChart = new ChartLib(barChartRef.value, {

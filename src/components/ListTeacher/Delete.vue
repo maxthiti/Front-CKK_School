@@ -52,11 +52,8 @@ async function confirmDelete() {
     try {
         const response = await teacherService.deleteTeacher(teacher.value.id)
         if (response.message === 'Success') {
-            // Close modal immediately to avoid overlaying with success alert
             close()
-            // Emit success so parent can refresh list while alert is visible
             emit('success')
-            // Show success alert after modal closed
             await showSuccess()
         } else {
             await showError()

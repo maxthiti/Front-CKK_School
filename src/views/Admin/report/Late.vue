@@ -112,24 +112,24 @@ const fetchData = async () => {
     }
 }
 
-const resetFilters = () => {
-    filters.value = {
-        role: 'student',
-        date: getDefaultDate(),
-        search: ''
-    }
-    pagination.value.page = 1
-    fetchData()
-}
+// const resetFilters = () => {
+//     filters.value = {
+//         role: 'student',
+//         date: getDefaultDate(),
+//         search: ''
+//     }
+//     pagination.value.page = 1
+//     fetchData()
+// }
 
 const handleRoleChange = () => {
     pagination.value.page = 1
     fetchData()
 }
 
-const triggerSearch = () => {
-    pagination.value.page = 1
-}
+// const triggerSearch = () => {
+//     pagination.value.page = 1
+// }
 
 const isNumericSearch = computed(() => /^\d+$/.test(filters.value.search.trim()))
 

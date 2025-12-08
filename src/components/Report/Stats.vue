@@ -613,9 +613,9 @@ function buildCompareChart() {
     const { primary: primaryColor, secondary: secondaryColor } = getThemeColors()
     const black = 'rgba(0,0,0,0.85)'
     const blue = 'rgba(59, 130, 246, 0.9)'
-    const blueLight = 'rgba(147, 197, 253, 0.9)'
+    // const blueLight = 'rgba(147, 197, 253, 0.9)'
     const yellow = 'rgba(234, 179, 8, 0.9)'
-    const yellowLight = 'rgba(253, 224, 71, 0.9)'
+    // const yellowLight = 'rgba(253, 224, 71, 0.9)'
 
     let datasets = [
         { label: 'นักเรียน (ตรงเวลา)', data: studentOntime, backgroundColor: primaryColor, borderColor: primaryColor, stack: 'student' },

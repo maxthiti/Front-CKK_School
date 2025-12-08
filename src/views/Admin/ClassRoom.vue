@@ -25,13 +25,16 @@
             </div>
         </div>
 
-        <CardView :classrooms="filteredClassrooms" :loading="loading" @delete="openDeleteConfirm"
+        <CardView :classrooms="filteredClassrooms" :loading="loading" @delete="openDeleteModal"
             @edit="openUpdateModal" />
 
         <CreateModal ref="createModalRef" :classrooms="classrooms" :teachers="teachers"
             :availableGrades="availableGrades" @success="handleCreateSuccess" />
 
-        <UpdateModal v-if="auth.user?.role !== 'teacher'" ref="updateModalRef" :teachers="teachers" @success="handleUpdateSuccess" />
+        <UpdateModal v-if="auth.user?.role !== 'teacher'" ref="updateModalRef" :teachers="teachers"
+            @success="handleUpdateSuccess" />
+
+        <DeleteModal ref="deleteModalRef" @deleted="handleDeleteSuccess" />
     </div>
 </template>
 
@@ -40,6 +43,7 @@ import { ref, computed, onMounted } from 'vue'
 import CreateModal from '../../components/ClassRoom/Create.vue'
 import UpdateModal from '../../components/ClassRoom/Update.vue'
 import CardView from '../../components/ClassRoom/CardView.vue'
+import DeleteModal from '../../components/ClassRoom/Delete.vue'
 import { ClassRoomService } from '../../api/class-room'
 import { TeacherService } from '../../api/teacher'
 import { useAuthStore } from '../../stores/auth'
@@ -53,6 +57,7 @@ const teachers = ref([])
 const loading = ref(false)
 const createModalRef = ref(null)
 const updateModalRef = ref(null)
+const deleteModalRef = ref(null)
 const selectedGrade = ref('ม.1')
 
 const availableGrades = [
@@ -179,54 +184,12 @@ const handleUpdateSuccess = async (formData) => {
     }
 }
 
-const openDeleteConfirm = async (classroom) => {
-    const { default: Swal } = await import('sweetalert2')
-    const result = await Swal.fire({
-        title: 'ยืนยันการลบ?',
-        html: `คุณต้องการลบ <strong>${classroom.grade} ห้อง ${classroom.classroom}</strong> ใช่หรือไม่?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: 'ลบ',
-        cancelButtonText: 'ยกเลิก',
-        didOpen: () => {
-            document.getElementById('app').removeAttribute('aria-hidden')
-        }
-    })
-
-    if (result.isConfirmed) {
-        await handleDelete(classroom._id)
-    }
+function openDeleteModal(classroom) {
+    deleteModalRef.value.openModal(classroom)
 }
 
-const handleDelete = async (id) => {
-    try {
-        await classRoomService.deleteClassRoom(id)
-        await fetchClassRooms()
-        const { default: Swal } = await import('sweetalert2')
-        Swal.fire({
-            icon: 'success',
-            title: 'ลบห้องเรียนสำเร็จ',
-            showConfirmButton: false,
-            timer: 1500,
-            didOpen: () => {
-                document.getElementById('app').removeAttribute('aria-hidden')
-            }
-        })
-    } catch (error) {
-        console.error('Delete classroom error:', error)
-        const { default: Swal } = await import('sweetalert2')
-        Swal.fire({
-            icon: 'error',
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถลบห้องเรียนได้',
-            confirmButtonColor: '#2563eb',
-            didOpen: () => {
-                document.getElementById('app').removeAttribute('aria-hidden')
-            }
-        })
-    }
+async function handleDeleteSuccess() {
+    await fetchClassRooms()
 }
 
 const fetchTeachers = async () => {

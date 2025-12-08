@@ -134,7 +134,6 @@
 </template>
 
 <script setup>
-import axios from 'axios'
 import { ref, watch } from 'vue'
 import { useAuthStore } from '../../stores/auth'
 const auth = useAuthStore()

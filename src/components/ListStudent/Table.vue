@@ -152,8 +152,6 @@
 </template>
 
 <script setup>
-import axios from 'axios'
-import { ref } from 'vue'
 const props = defineProps({
     students: {
         type: Array,

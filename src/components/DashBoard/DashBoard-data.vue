@@ -253,12 +253,12 @@ const displayDate = computed(() => {
     return `${dd}/${mm}/${yyyy}`
 })
 
-const attendancePagination = computed(() => ({
-    page: attendancePage.value,
-    limit: attendanceLimit.value,
-    total_items: attendanceTotalItems.value,
-    total_pages: attendanceTotalPages.value
-}))
+// const attendancePagination = computed(() => ({
+//     page: attendancePage.value,
+//     limit: attendanceLimit.value,
+//     total_items: attendanceTotalItems.value,
+//     total_pages: attendanceTotalPages.value
+// }))
 
 const latePagination = computed(() => ({
     page: latePage.value,
@@ -563,33 +563,33 @@ async function reloadAttendance() {
     }
 }
 
-function handleGradeChange() {
-    if (availableClassrooms.value.length > 0) {
-        attendanceClassroom.value = availableClassrooms.value[0]
-    } else {
-        attendanceClassroom.value = 0
-    }
-    reloadAttendance()
-}
+// function handleGradeChange() {
+//     if (availableClassrooms.value.length > 0) {
+//         attendanceClassroom.value = availableClassrooms.value[0]
+//     } else {
+//         attendanceClassroom.value = 0
+//     }
+//     reloadAttendance()
+// }
 
-async function handlePageChange(page) {
-    if (page >= 1 && page <= attendanceTotalPages.value) {
-        attendancePage.value = page
-        if (residentRole.value === 'teacher') {
-            attendanceData.value = attendanceFilteredData.value.slice((attendancePage.value - 1) * 5, attendancePage.value * 5)
-        } else {
-            if (attendanceRole.value === 'teacher') {
-                await showTeacherAttendanceTable()
-            } else {
-                await showAttendanceTable()
-            }
-        }
-    }
-}
+// async function handlePageChange(page) {
+//     if (page >= 1 && page <= attendanceTotalPages.value) {
+//         attendancePage.value = page
+//         if (residentRole.value === 'teacher') {
+//             attendanceData.value = attendanceFilteredData.value.slice((attendancePage.value - 1) * 5, attendancePage.value * 5)
+//         } else {
+//             if (attendanceRole.value === 'teacher') {
+//                 await showTeacherAttendanceTable()
+//             } else {
+//                 await showAttendanceTable()
+//             }
+//         }
+//     }
+// }
 
-function viewDetail(item) {
-    detailModal.value?.openModal(item)
-}
+// function viewDetail(item) {
+//     detailModal.value?.openModal(item)
+// }
 
 function resetAttendancePage() {
     attendancePage.value = 1

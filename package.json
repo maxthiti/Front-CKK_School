@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy:production": "scp -r -P 3322 dist/* root@141.11.159.83:/var/www/visitor.zoftdd.com"
+    "deploy:production": "scp -r -P 2222 dist/* solutiondd@49.231.182.46:/var/www/ckkadmin"
   },
   "dependencies": {
     "@fawmi/vue-google-maps": "^0.9.79",

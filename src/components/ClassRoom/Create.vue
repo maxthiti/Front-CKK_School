@@ -113,9 +113,9 @@ const filteredTeachersByAdviserQuery = computed(() => {
     })
 })
 
-const selectedTeacher = computed(() => {
-    return filteredTeachers.value.find(t => (t._id || t.id) === formData.value.adviser) || null
-})
+// const selectedTeacher = computed(() => {
+//     return filteredTeachers.value.find(t => (t._id || t.id) === formData.value.adviser) || null
+// })
 
 const selectAdviser = (teacher) => {
     formData.value.adviser = teacher._id || teacher.id

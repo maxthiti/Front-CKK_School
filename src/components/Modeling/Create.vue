@@ -171,16 +171,16 @@ const cancelSelectMode = () => {
     emit('selectModeChanged', false);
 };
 
-const saveSelected = () => {
-    Swal.fire({
-        icon: 'success',
-        title: 'บันทึกสำเร็จ',
-        timer: 1200,
-        showConfirmButton: false
-    });
-    selectMode.value = false;
-    emit('selectModeChanged', false);
-};
+// const saveSelected = () => {
+//     Swal.fire({
+//         icon: 'success',
+//         title: 'บันทึกสำเร็จ',
+//         timer: 1200,
+//         showConfirmButton: false
+//     });
+//     selectMode.value = false;
+//     emit('selectModeChanged', false);
+// };
 
 const handleSubmit = async () => {
     if (formData.value.device_id.length === 0) {
@@ -236,7 +236,6 @@ const backToSelectPerson = () => {
 };
 
 onMounted(() => {
-    // Optional: preload devices
 });
 </script>
 

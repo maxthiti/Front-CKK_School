@@ -310,7 +310,6 @@ const validateLastName = () => {
 }
 
 const isFormValid = computed(() => {
-    // both names required and valid; fileError must be empty
     return (
         !firstNameError.value &&
         !lastNameError.value &&
@@ -330,7 +329,6 @@ const removeNewImage = () => {
 }
 
 const handleSubmit = async () => {
-    // final validation before submit
     validateFirstName()
     validateLastName()
     if (!isFormValid.value) {

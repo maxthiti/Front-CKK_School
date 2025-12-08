@@ -206,32 +206,32 @@ const openImage = (image) => {
     imageModal.value?.showModal()
 }
 
-const visiblePages = computed(() => {
-    const current = props.pagination.page
-    const total = props.pagination.total_pages
-    const delta = 2
-    const pages = []
+// const visiblePages = computed(() => {
+//     const current = props.pagination.page
+//     const total = props.pagination.total_pages
+//     const delta = 2
+//     const pages = []
 
-    for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
-        pages.push(i)
-    }
+//     for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+//         pages.push(i)
+//     }
 
-    if (current - delta > 2) {
-        pages.unshift('...')
-    }
-    if (current + delta < total - 1) {
-        pages.push('...')
-    }
+//     if (current - delta > 2) {
+//         pages.unshift('...')
+//     }
+//     if (current + delta < total - 1) {
+//         pages.push('...')
+//     }
 
-    if (total > 0) {
-        pages.unshift(1)
-        if (total > 1) {
-            pages.push(total)
-        }
-    }
+//     if (total > 0) {
+//         pages.unshift(1)
+//         if (total > 1) {
+//             pages.push(total)
+//         }
+//     }
 
-    return pages.filter((p, idx, arr) => p !== '...' || arr[idx - 1] !== '...')
-})
+//     return pages.filter((p, idx, arr) => p !== '...' || arr[idx - 1] !== '...')
+// })
 
 const displayedPages = computed(() => {
     const total = props.pagination.total_pages

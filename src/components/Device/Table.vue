@@ -139,7 +139,6 @@ const formatGateType = (gateType) => {
 }
 
 const formatStatus = (status) => {
-    // ...existing code...
 }
 
 const isOnline = (currentTime) => {
