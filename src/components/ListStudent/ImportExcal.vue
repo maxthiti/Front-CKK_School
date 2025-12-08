@@ -28,7 +28,7 @@
                     <input type="file" accept="image/*" multiple @change="onImagesChange"
                         class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
                     <p v-if="imageFiles.length" class="text-xs text-success mt-1">รูปภาพที่เลือก: {{ imageFiles.length
-                        }} ไฟล์</p>
+                    }} ไฟล์</p>
                     <p class="text-xs text-gray-500 mt-1">กรุณาตั้งชื่อไฟล์รูปภาพเป็นรหัสนักเรียน เช่น <b>6200.jpg</b>
                         เพื่อให้ระบบแมปข้อมูลอัตโนมัติ</p>
                 </div>
@@ -57,7 +57,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="(student, idx) in previewData.slice(0, 10)" :key="idx">
+                            <tr v-for="(student, idx) in pagedPreviewData" :key="idx">
                                 <td>{{ student.userid }}</td>
                                 <td>{{ student.pre_name }}</td>
                                 <td>{{ student.first_name }}</td>
@@ -66,12 +66,13 @@
                                 <td>{{ student.classroom }}</td>
                                 <td>{{ student.imageName || '-' }}</td>
                             </tr>
-                            <tr v-if="previewData.length > 10">
-                                <td colspan="7" class="text-center italic text-sm">... และอีก {{ previewData.length - 10
-                                }} รายการ</td>
-                            </tr>
                         </tbody>
                     </table>
+                </div>
+                <div class="flex justify-center items-center gap-2 mt-2">
+                    <button class="btn btn-xs" @click="currentPage--" :disabled="currentPage === 1">«</button>
+                    <span class="text-xs">หน้า {{ currentPage }} / {{ totalPages }}</span>
+                    <button class="btn btn-xs" @click="currentPage++" :disabled="currentPage === totalPages">»</button>
                 </div>
                 <button class="btn btn-success mt-4" @click="handleImport" :disabled="isImporting">
                     <span v-if="isImporting" class="loading loading-spinner"></span>
@@ -145,6 +146,14 @@ function mapHeader(header, row) {
 const excelFile = ref(null)
 const imageFiles = ref([])
 const previewData = ref([])
+import { computed } from 'vue'
+const currentPage = ref(1)
+const pageSize = 5
+const pagedPreviewData = computed(() => {
+    const start = (currentPage.value - 1) * pageSize
+    return previewData.value.slice(start, start + pageSize)
+})
+const totalPages = computed(() => Math.ceil(previewData.value.length / pageSize) || 1)
 const isPreviewing = ref(false)
 const isImporting = ref(false)
 const modalRef = ref(null)
@@ -172,6 +181,7 @@ defineExpose({ openModal })
 function onExcelChange(e) {
     excelFile.value = e.target.files[0]
     previewData.value = []
+    currentPage.value = 1
     e.target.value = null
 }
 function onImagesChange(e) {
@@ -190,6 +200,7 @@ function previewExcel() {
 
     isPreviewing.value = true
     previewData.value = []
+    currentPage.value = 1
 
     const getImageName = (userid) => {
         userid = userid?.toString().trim();
