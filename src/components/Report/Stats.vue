@@ -7,7 +7,7 @@
                 </h1>
                 <div v-if="residentRole === 'teacher'" class="mb-2 flex items-center gap-2">
                     <span class="label-text text-sm font-medium text-secondary">ชั้นปี / ห้อง</span>
-                    <span class="font-bold text-primary">{{ teacherGrade }}/{{ teacherClassroom }}</span>
+                    <span class="font-bold text-secondary">{{ teacherGrade }}/{{ teacherClassroom }}</span>
                 </div>
             </div>
             <div
@@ -26,7 +26,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
-                    <span class="text-sm whitespace-nowrap">{{ weekLabel }}</span>
+                    <span class="text-sm whitespace-nowrap text-white">{{ weekLabel }}</span>
                     <button @click="navigateWeek(1)" class="btn btn-xs btn-circle">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
@@ -42,7 +42,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
-                    <span class="text-sm whitespace-nowrap">{{ monthLabel }}</span>
+                    <span class="text-sm whitespace-nowrap text-white">{{ monthLabel }}</span>
                     <button @click="navigateMonth(1)" class="btn btn-xs btn-circle">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
@@ -64,8 +64,8 @@
         </div>
 
         <div
-            :class="['grid', compareMode && !isMdOrLess ? 'lg:grid-cols-2' : 'lg:grid-cols-1', 'gap-2 sm:gap-4 md:gap-6']">
-            <div class="space-y-1 sm:space-y-2 md:space-y-4">
+            :class="['grid', compareMode && !isMdOrLess ? 'lg:grid-cols-2' : 'lg:grid-cols-1', 'gap-4 md:gap-6']">
+            <div class="space-y-4">
                 <div v-if="primary.data" class="grid grid-cols-2 gap-1 sm:gap-2 md:gap-3">
                     <div class="stat bg-base-100 shadow rounded-lg p-3">
                         <div class="stat-title text-xs">นักเรียนทั้งหมด</div>
@@ -100,7 +100,7 @@
                             <option value="line">กราฟเส้น</option>
                         </select>
                     </div>
-                    <div class="h-32 sm:h-48 md:h-80 transition-all duration-300">
+                    <div class="h-80 sm:h-48 md:h-80 transition-all duration-300">
                         <canvas ref="primaryChartRef"></canvas>
                     </div>
                 </div>
@@ -173,7 +173,7 @@
                             <option value="line">กราฟเส้น</option>
                         </select>
                     </div>
-                    <div class="h-32 sm:h-48 md:h-80 transition-all duration-300">
+                    <div class="h-80 sm:h-48 md:h-80 transition-all duration-300">
                         <canvas ref="compareChartRef"></canvas>
                     </div>
                 </div>
