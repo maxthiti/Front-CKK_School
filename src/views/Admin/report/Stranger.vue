@@ -84,7 +84,7 @@ import StrangerTable from '../../../components/Report/StrangerTable.vue'
 import reportApi from '../../../api/report.js'
 import deviceService from '../../../api/device.js'
 
-const imgBaseUrl = import.meta.env.VITE_APP_IMG_URL
+const imgBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
 
 const loading = ref(false)
 const error = ref(null)

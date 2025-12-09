@@ -6,17 +6,21 @@
                     <div class="flex flex-col items-center mb-4 animate-logo">
                         <img :src="logoUrl" alt="Chakkam Khanathon School Logo" class="school-logo mb-2" />
                         <h2 class="school-title text-blue-900 font-bold text-xl sm:text-2xl text-center drop-shadow">
-                            โรงเรียนจักรคำคณาทร</h2>
+                            โรงเรียนจักรคำคณาทร
+                        </h2>
+                        <div class="text-blue-900 font-medium text-base sm:text-lg text-center drop-shadow mb-1">
+                            จังหวัดลำพูน
+                        </div>
                     </div>
-                    <h2 class="card-title justify-center text-2xl text-blue-900">เข้าสู่ระบบ</h2>
+                    <!-- <h2 class="card-title justify-center text-2xl text-blue-900">เข้าสู่ระบบ</h2> -->
 
                     <form @submit.prevent="onSubmit" class="space-y-4">
                         <div class="form-control">
                             <label class="label">
-                                <span class="label-text">อีเมลหรือชื่อผู้ใช้</span>
+                                <span class="label-text">ชื่อผู้ใช้</span>
                             </label>
                             <input v-model.trim="form.username" type="text" class="input input-bordered"
-                                placeholder="you@example.com" autocomplete="username" />
+                                placeholder="ชื่อผู้ใช้" autocomplete="username" />
                             <p v-if="errors.username" class="mt-1 text-error text-sm">{{ errors.username }}</p>
                         </div>
 
@@ -38,6 +42,7 @@
 
                         <div class="flex items-center justify-between flex-wrap gap-2">
                             <label class="label cursor-pointer gap-2">
+                                <!-- <input type="checkbox" class="checkbox checkbox-sm" /> -->
                                 <input type="checkbox" v-model="remember" class="checkbox checkbox-sm" />
                                 <span class="label-text">จดจำฉัน</span>
                             </label>
@@ -78,6 +83,7 @@ import axios from 'axios'
 import { useAuthStore } from '../stores/auth'
 import { UserService } from '../api/User.js'
 import logoUrl from '../assets/Chakkam_Khanathon_School_logo.png'
+import CryptoJS from '../utils/crypto.js'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -86,11 +92,27 @@ const userService = new UserService()
 
 const form = reactive({ username: '', password: '' })
 const errors = reactive({ username: '', password: '' })
-const remember = ref(true)
+const remember = ref(false)
 const loading = ref(false)
 const formError = ref('')
 const success = ref(false)
 const showPassword = ref(false)
+
+onMounted(() => {
+    const savedUsername = localStorage.getItem('remember_username')
+    const savedPassword = localStorage.getItem('remember_password')
+    if (savedUsername && savedPassword) {
+        form.username = savedUsername
+        try {
+            const bytes = CryptoJS.AES.decrypt(savedPassword, 'CKKSchool2025')
+            form.password = bytes.toString(CryptoJS.enc.Utf8)
+        } catch (e) {
+            form.password = ''
+        }
+        remember.value = true
+    }
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+})
 
 const deferredPrompt = ref(null)
 
@@ -107,10 +129,6 @@ function handleBeforeInstallPrompt(e) {
     e.preventDefault()
     deferredPrompt.value = e
 }
-
-onMounted(() => {
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-})
 
 onBeforeUnmount(() => {
     window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
@@ -192,6 +210,14 @@ async function onSubmit() {
                 localStorage.setItem('refresh_token', refreshToken);
             } else {
                 localStorage.removeItem('refresh_token');
+            }
+            if (remember.value) {
+                localStorage.setItem('remember_username', form.username)
+                const encrypted = CryptoJS.AES.encrypt(form.password, 'CKKSchool2025').toString()
+                localStorage.setItem('remember_password', encrypted)
+            } else {
+                localStorage.removeItem('remember_username')
+                localStorage.removeItem('remember_password')
             }
             await auth.initializeAuth()
             success.value = true

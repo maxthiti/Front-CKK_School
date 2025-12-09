@@ -86,7 +86,7 @@ const props = defineProps({
 
 const emit = defineEmits(['viewImage'])
 
-const imgBaseUrl = import.meta.env.VITE_APP_IMG_URL
+const imgBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
 
 const formatDate = (dateStr) => {
     if (!dateStr) return '-'

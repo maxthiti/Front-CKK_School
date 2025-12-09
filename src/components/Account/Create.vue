@@ -19,8 +19,18 @@
                     <label class="label">
                         <span class="label-text">Password <span class="text-error">*</span></span>
                     </label>
-                    <input v-model.trim="form.password" type="password" placeholder="กรอก password"
-                        class="input input-bordered" :class="{ 'input-error': errors.password }" required />
+                    <div class="flex items-center gap-2 w-full">
+                        <div class="flex-1">
+                            <input v-model.trim="form.password" :type="passwordVisible ? 'text' : 'password'"
+                                placeholder="กรอก password" class="input input-bordered w-full"
+                                :class="{ 'input-error': errors.password }" required />
+                        </div>
+                        <button type="button"
+                            class="ml-2 text-primary bg-transparent border-none text-sm px-2 py-1 focus:outline-none"
+                            tabindex="-1" @click="togglePassword" aria-label="แสดง/ซ่อนรหัสผ่าน">
+                            <span>{{ passwordVisible ? 'ซ่อน' : 'แสดง' }}</span>
+                        </button>
+                    </div>
                     <label v-if="errors.password" class="label">
                         <span class="label-text-alt text-error">{{ errors.password }}</span>
                     </label>
@@ -64,6 +74,11 @@
 </template>
 
 <script setup>
+const passwordVisible = ref(false)
+
+const togglePassword = () => {
+    passwordVisible.value = !passwordVisible.value
+}
 import { reactive, ref, watch } from 'vue'
 import { AccountService } from '../../api/account'
 
