@@ -49,18 +49,28 @@ class HolidaysAPI {
 }
 
 export async function fetchExternalHolidays() {
-  const axios = require("axios");
-  let config = {
-    method: "get",
-    maxBodyLength: Infinity,
-    url: "https://www.myhora.com/calendar/ical/holiday.aspx?latest.json",
-    headers: {
-      Cookie: "ASP.NET_SessionId=hepmj5x2z0hnrggqak2um0rv",
-    },
-  };
+  const baseUrl = import.meta.env.VITE_APP_BASE_URL;
+  const url = baseUrl + "dayoff/calendar";
   try {
-    const response = await axios.request(config);
-    return response.data;
+    const response = await axios.get(url, {
+      withCredentials: true,
+      headers: {
+        Accept: "application/json",
+      },
+      responseType: "text",
+    });
+    let data = response.data;
+    if (typeof data === "string") {
+      data = data.replace(
+        /(\"VEVENT\"\s*:\s*\[)([\s\S]*?)(\])/,
+        (match, p1, p2, p3) => {
+          const fixed = p2.replace(/}\s*{/g, "},{");
+          return p1 + fixed + p3;
+        }
+      );
+      data = JSON.parse(data);
+    }
+    return data;
   } catch (error) {
     throw error;
   }

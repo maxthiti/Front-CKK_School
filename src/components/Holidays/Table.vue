@@ -1,6 +1,6 @@
 <template>
     <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
+        <div class="card-body p-3">
             <div class="overflow-x-auto">
                 <table class="table table-zebra table-xs sm:table-sm md:table-md">
                     <thead>
@@ -21,7 +21,8 @@
                                 ไม่มีข้อมูลวันหยุด
                             </td>
                         </tr>
-                        <tr v-else v-for="(item, idx) in holidays" :key="idx" class="hover">
+                        <tr v-else v-for="(item, idx) in pagedHolidays" :key="idx + (currentPage - 1) * pageSize"
+                            class="hover">
                             <td>{{ item.summary }}</td>
                             <td>{{ formatDisplayDate(item.date) }}</td>
                             <td>
@@ -40,11 +41,24 @@
                     </tbody>
                 </table>
             </div>
+            <div v-if="totalPages > 1" class="flex justify-center items-center mt-6">
+                <div class="join gap-1">
+                    <button class="join-item btn btn-sm" :disabled="currentPage === 1" @click="currentPage--">‹</button>
+                    <template v-for="page in visiblePages" :key="page">
+                        <button class="join-item btn btn-sm" :class="{ 'btn-active': page === currentPage }"
+                            @click="currentPage = page">{{ page }}</button>
+                    </template>
+                    <button class="join-item btn btn-sm" :disabled="currentPage === totalPages"
+                        @click="currentPage++">›</button>
+                </div>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
+
+import { ref, computed, watch } from 'vue';
 const props = defineProps({
     holidays: {
         type: Array,
@@ -54,21 +68,57 @@ const props = defineProps({
         type: Boolean,
         default: false
     }
-})
+});
+
+
+const pageSize = 10;
+const currentPage = ref(1);
+const totalPages = computed(() => Math.ceil(props.holidays.length / pageSize));
+const pagedHolidays = computed(() => {
+    const sorted = [...props.holidays].sort((a, b) => {
+        const toISO = (d) => {
+            if (typeof d === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(d)) {
+                const [day, month, year] = d.split('/');
+                return `${year}-${month}-${day}`;
+            }
+            return d;
+        };
+        return new Date(toISO(a.date)) - new Date(toISO(b.date));
+    });
+    const start = (currentPage.value - 1) * pageSize;
+    return sorted.slice(start, start + pageSize);
+});
+watch(() => props.holidays, () => { currentPage.value = 1; });
+
+// Pagination: แสดงเลขหน้าแบบ window
+const visiblePages = computed(() => {
+    const windowSize = 5;
+    let start = Math.max(1, currentPage.value - Math.floor(windowSize / 2));
+    let end = start + windowSize - 1;
+    if (end > totalPages.value) {
+        end = totalPages.value;
+        start = Math.max(1, end - windowSize + 1);
+    }
+    const pages = [];
+    for (let i = start; i <= end; i++) {
+        pages.push(i);
+    }
+    return pages;
+});
 
 function formatDisplayDate(date) {
     if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
-        const [y, m, d] = date.split('-')
-        return `${d}/${m}/${y}`
+        const [y, m, d] = date.split('-');
+        return `${d}/${m}/${y}`;
     }
     if (typeof date === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
-        return date
+        return date;
     }
-    const d = new Date(date)
-    const day = String(d.getDate()).padStart(2, '0')
-    const month = String(d.getMonth() + 1).padStart(2, '0')
-    const year = d.getFullYear()
-    return `${day}/${month}/${year}`
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
 }
 </script>
 <style scoped>

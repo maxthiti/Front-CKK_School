@@ -1,21 +1,21 @@
 <template>
-    <div class="flex items-center flex-row justify-between mb-6 gap-4">
+    <div class="flex items-center flex-row justify-between mb-4 gap-4">
         <h1 class="text-xl sm:text-2xl font-bold text-white whitespace-nowrap">จัดการวันหยุด</h1>
-        <button class="btn btn-primary ml-2 whitespace-nowrap shrink-0" @click="showCreate = true">+
+        <button class="btn btn-primary btn-sm ml-2 whitespace-nowrap shrink-0" @click="showCreate = true">+
             เพิ่มวันหยุด</button>
     </div>
     <div class="flex gap-2 items-center justify-end mb-4">
-        <select v-model="filterType" class="select select-bordered min-w-[80px] max-w-[120px] text-xs sm:text-base">
+        <select v-model="filterType" class="select select-bordered select-sm min-w-[80px] max-w-[120px] text-xs sm:text-base">
             <option value="month">เดือน</option>
             <option value="day">วัน</option>
             <option value="year">ปี</option>
         </select>
         <input v-if="filterType === 'day'" type="date" v-model="dateInput"
-            class="input input-bordered text-xs sm:text-base w-auto" />
+            class="input input-bordered input-sm text-xs sm:text-base w-auto" />
         <input v-if="filterType === 'month'" type="month" v-model="monthInput"
-            class="input input-bordered text-xs sm:text-base w-auto" />
+            class="input input-bordered input-sm text-xs sm:text-base w-auto" />
         <input v-if="filterType === 'year'" type="number" min="1900" max="2100" v-model="yearInput"
-            class="input input-bordered w-auto text-xs sm:text-base" />
+            class="input input-bordered input-sm w-auto text-xs sm:text-base" />
     </div>
 
     <HolidaysTable :holidays="holidays.data || []" @delete="onDeleteHoliday" />
