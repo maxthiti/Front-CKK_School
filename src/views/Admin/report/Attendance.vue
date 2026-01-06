@@ -5,7 +5,7 @@
             <div class="flex flex-row gap-2 items-stretch md:items-center justify-end md:justify-center">
                 <div class="flex flex-col">
                     <label class="text-sm font-medium mb-1 md:mb-0 md:mr-1">วันที่เริ่มต้น</label>
-                    <input v-model="filters.start" type="date" @change="fetchData"
+                    <input v-model="filters.start" type="date" @change="fetchData" :max="getDefaultDate()"
                         class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
                 </div>
                 <div class="hidden md:flex items-center justify-center md:mx-1">
@@ -13,7 +13,7 @@
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium mb-1 md:mb-0 md:mr-1">วันที่สิ้นสุด</label>
-                    <input v-model="filters.end" type="date" @change="fetchData"
+                    <input v-model="filters.end" type="date" @change="fetchData" :max="getDefaultDate()"
                         class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
                 </div>
             </div>

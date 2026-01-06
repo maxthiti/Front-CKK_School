@@ -3,7 +3,8 @@
         <div class="flex justify-between items-center">
             <h3 class="text-lg font-semibold text-white">สรุปรายวัน</h3>
             <div class="flex items-center gap-2">
-                <input type="date" v-model="selectedDate" class="input input-sm input-bordered" @change="fetchDaily" />
+                <input type="date" v-model="selectedDate" class="input input-sm input-bordered" @change="fetchDaily"
+                    :max="getDefaultDate()" />
                 <span v-if="loading" class="loading loading-spinner loading-sm"></span>
             </div>
         </div>
@@ -14,7 +15,7 @@
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
                 <h3 class="font-bold text-lg mb-4">รายการเข้าเรียน{{ attendanceRole === 'teacher' ? 'ครู' : 'นักเรียน'
-                    }} วันที่ {{ displayDate }}</h3>
+                }} วันที่ {{ displayDate }}</h3>
                 <div v-if="attendanceRole === 'student'">
                     <Attendance :role="'student'" :date="selectedDate" v-if="residentRole !== 'teacher'" />
                     <Attendance :role="'student'" :date="selectedDate" v-else :fixed-grade="localGrade"
@@ -52,7 +53,7 @@
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
                 <h3 class="font-bold text-lg mb-4">รายการที่ไม่ได้สแกน{{ missedRole === 'teacher' ? 'ครู' : 'นักเรียน'
-                    }} วันที่
+                }} วันที่
                     {{ displayDate }}</h3>
 
                 <MissedTable :data="missedData" :pagination="missedPagination"
@@ -104,10 +105,11 @@
 
         <div v-if="auth.user?.role !== 'teacher'" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <transition name="slide-fade">
-                <div v-show="showStudentAbsentStat" class="card bg-base-100 shadow-xl group" ref="studentAbsentStatRef">
+                <div v-show="showStudentAbsentStat" class="card bg-base-100 shadow-xl group student-bg"
+                    ref="studentAbsentStatRef">
                     <div class="card-body p-4">
                         <h4 class="card-title">นักเรียน</h4>
-                        <div class="stats stats-vertical lg:stats-horizontal bg-base-100 w-full">
+                        <div class="stats stats-vertical lg:stats-horizontal bg-base-100 w-full student-bg">
                             <div class="stat relative">
                                 <div class="stat-title">เข้า</div>
                                 <div class="stat-value text-primary">{{ student.total - student.late }}</div>
@@ -140,10 +142,11 @@
                 </div>
             </transition>
             <transition v-if="auth.user?.role !== 'teacher'" name="slide-right">
-                <div v-show="showTeacherAbsentStat" class="card bg-base-100 shadow-xl group" ref="teacherAbsentStatRef">
+                <div v-show="showTeacherAbsentStat" class="card bg-base-100 shadow-xl group teacher-bg"
+                    ref="teacherAbsentStatRef">
                     <div class="card-body p-4">
                         <h4 class="card-title">ครู</h4>
-                        <div class="stats stats-vertical lg:stats-horizontal bg-base-100 w-full">
+                        <div class="stats stats-vertical lg:stats-horizontal bg-base-100 w-full teacher-bg">
                             <div class="stat relative">
                                 <div class="stat-title">เข้า</div>
                                 <div class="stat-value text-secondary">{{ teacher.total - teacher.late }}</div>
@@ -245,6 +248,11 @@ const auth = useAuthStore()
 const emit = defineEmits(['dateChange'])
 const studentCardRef = ref(null)
 const selectedDate = ref(new Date().toISOString().split('T')[0])
+
+function getDefaultDate() {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+}
 const loading = ref(false)
 
 const studentIconRef = ref(null)
@@ -749,5 +757,15 @@ onMounted(() => {
 .slide-right-leave-to {
     opacity: 0;
     transform: translateX(60px);
+}
+</style>
+
+<style scoped>
+.student-bg {
+    background-color: #e3f0ff !important;
+}
+
+.teacher-bg {
+    background-color: #fff7d6 !important;
 }
 </style>

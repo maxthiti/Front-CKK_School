@@ -1,8 +1,16 @@
 <template>
-    <div class="flex justify-end mb-2">
+    <div class="flex justify-end mb-2 gap-2">
         <button v-if="role === 'teacher'" class="btn btn-sm btn-primary" :disabled="loadingExportDoc"
             @click="exportDocxLeaveReport">
             เอกสารสรุปการออกงาน
+        </button>
+        <button class="btn btn-sm btn-success" :disabled="loadingExport" @click="exportMissedToExcel">
+            <span v-if="loadingExport" class="loading loading-spinner loading-xs mr-2"></span>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            ส่งออก Excel
         </button>
     </div>
     <div class="hidden lg:block bg-base-100 rounded-lg shadow-lg overflow-x-auto">
@@ -114,8 +122,10 @@ import { ref, computed } from 'vue'
 import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, AlignmentType, WidthType, BorderStyle, ImageRun } from 'docx'
 import { saveAs } from 'file-saver'
 import reportApi from '../../api/report.js'
-const loadingExportDoc = ref(false)
+import ExcelJS from 'exceljs'
 
+const loadingExportDoc = ref(false)
+const loadingExport = ref(false)
 const props = defineProps({
     data: {
         type: Array,
@@ -133,6 +143,16 @@ const props = defineProps({
         type: String,
         required: false,
         default: 'student'
+    },
+    grade: {
+        type: [String, Number],
+        required: false,
+        default: undefined
+    },
+    classroom: {
+        type: [String, Number],
+        required: false,
+        default: undefined
     }
 })
 
@@ -198,6 +218,97 @@ const getInitials = (name) => {
         return (parts[0][0] || '') + (parts[1][0] || '')
     }
     return parts[0][0] || '?'
+}
+
+async function exportMissedToExcel() {
+    if (loadingExport.value) return;
+    loadingExport.value = true;
+    try {
+        const params = {
+            date: props.dateRange?.end,
+            role: props.role,
+            page: 1,
+            limit: props.pagination?.limit || 50,
+        };
+        if (props.grade !== undefined && props.grade !== null && props.grade !== '') params.grade = props.grade;
+        if (props.classroom !== undefined && props.classroom !== null && props.classroom !== '') params.classroom = props.classroom;
+        let allData = [];
+        let totalPages = 1;
+        do {
+            const res = await reportApi.getMissedReport(params);
+            if (res && res.data) {
+                allData = allData.concat(res.data);
+                totalPages = res.total_pages || 1;
+                params.page++;
+            } else {
+                break;
+            }
+        } while (params.page <= totalPages);
+
+
+        const uniqueMap = new Map();
+        allData.forEach(item => {
+            if (!uniqueMap.has(item.userid)) {
+                uniqueMap.set(item.userid, item);
+            }
+        });
+        let uniqueData = Array.from(uniqueMap.values());
+
+        if (props.grade !== undefined && props.grade !== null && props.grade !== '') {
+            uniqueData = uniqueData.filter(item => String(item.grade) === String(props.grade));
+        }
+        if (props.classroom !== undefined && props.classroom !== null && props.classroom !== '') {
+            uniqueData = uniqueData.filter(item => String(item.classroom) === String(props.classroom));
+        }
+
+        const rows = uniqueData.map(item => ({
+            'รหัส': item.userid,
+            'ชื่อ-สกุล': item.name,
+            'ตำแหน่ง': item.position,
+            'ชั้นเรียน/แผนก': item.position === 'นักเรียน' ? `${item.grade}/${item.classroom}` : (item.department || '-'),
+        }));
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('MissedDetail');
+
+        let reportDate = '';
+        if (props.dateRange && props.dateRange.end) {
+            const [y, m, d] = props.dateRange.end.split('-');
+            reportDate = `${d}/${m}/${y}`;
+        } else {
+            const now = new Date();
+            reportDate = now.toLocaleDateString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        }
+        worksheet.addRow([`รายงานข้อมูลขาดเรียน/ขาดงาน (${reportDate})`]);
+        worksheet.mergeCells('A1:D1');
+        worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getCell('A1').font = { bold: true };
+
+        const header = ['รหัส', 'ชื่อ-สกุล', 'ตำแหน่ง', 'ชั้นเรียน/แผนก'];
+        worksheet.addRow(header);
+
+        rows.forEach(row => {
+            worksheet.addRow(header.map(h => row[h]));
+        });
+
+        worksheet.columns = [
+            { width: 10 },
+            { width: 40 },
+            { width: 20 },
+            { width: 40 },
+        ];
+        worksheet.getRow(2).alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getColumn(1).alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getRow(2).font = { bold: true };
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), `MissedDetail.xlsx`);
+    } catch (e) {
+        alert('เกิดข้อผิดพลาดในการส่งออก Excel');
+        console.error(e);
+    } finally {
+        loadingExport.value = false;
+    }
 }
 
 async function exportDocxLeaveReport() {

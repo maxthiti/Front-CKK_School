@@ -562,6 +562,75 @@ function buildPrimaryChart() {
     }
 
 
+    const groupLabelPlugin = {
+        id: 'groupLabelPlugin',
+        afterDatasetsDraw(chart) {
+            const { ctx, chartArea } = chart
+            if (!ctx || !chartArea) return
+            // if (window.innerWidth < 640) return
+            if (chart.data.datasets.length < 6) return
+            const days = chart.data.labels.length
+            for (let i = 0; i < days; i++) {
+                const metaStu0 = chart.getDatasetMeta(0)
+                const metaStu2 = chart.getDatasetMeta(2)
+                const barStu0 = metaStu0.data[i]
+                const barStu2 = metaStu2.data[i]
+                if (!barStu0 || !barStu2) continue
+                const stuLeft = Math.min(barStu0.x, barStu2.x) - barStu0.width / 2
+                const stuRight = Math.max(barStu0.x, barStu2.x) + barStu2.width / 2
+                const metaTea3 = chart.getDatasetMeta(3)
+                const metaTea5 = chart.getDatasetMeta(5)
+                const barTea3 = metaTea3.data[i]
+                const barTea5 = metaTea5.data[i]
+                if (!barTea3 || !barTea5) continue
+                const teaLeft = Math.min(barTea3.x, barTea5.x) - barTea3.width / 2
+                const teaRight = Math.max(barTea3.x, barTea5.x) + barTea5.width / 2
+                const marginX = 1;
+                const marginY = 1;
+                ctx.save()
+                ctx.strokeStyle = '#eff6ff'
+                ctx.lineWidth = 2.5
+                ctx.beginPath()
+                ctx.rect(
+                    stuLeft - marginX,
+                    chartArea.top - marginY,
+                    (stuRight - stuLeft) + marginX * 2,
+                    (chartArea.bottom - chartArea.top) + marginY * 2
+                )
+                ctx.stroke()
+                ctx.restore()
+                ctx.save()
+                ctx.strokeStyle = '#fefce8'
+                ctx.lineWidth = 2.5
+                ctx.beginPath()
+                ctx.rect(
+                    teaLeft - marginX,
+                    chartArea.top - marginY,
+                    (teaRight - teaLeft) + marginX * 2,
+                    (chartArea.bottom - chartArea.top) + marginY * 2
+                )
+                ctx.stroke()
+                ctx.restore()
+                if (window.innerWidth >= 640) {
+                    ctx.save()
+                    ctx.font = 'bold 12px sans-serif'
+                    ctx.fillStyle = '#222'
+                    ctx.textAlign = 'center'
+                    ctx.textBaseline = 'middle'
+                    ctx.fillText('นักเรียน', (stuLeft + stuRight) / 2, chartArea.top + 30)
+                    ctx.restore()
+
+                    ctx.save()
+                    ctx.font = 'bold 12px sans-serif'
+                    ctx.fillStyle = '#222'
+                    ctx.textAlign = 'center'
+                    ctx.textBaseline = 'middle'
+                    ctx.fillText('ครู', (teaLeft + teaRight) / 2, chartArea.top + 30)
+                    ctx.restore()
+                }
+            }
+        }
+    }
     primaryChart = new ChartLib(primaryChartRef.value, {
         type: primary.value.chartType,
         data: { labels: dates.map(formatLabelDate), datasets },
@@ -602,11 +671,11 @@ function buildPrimaryChart() {
             },
             layout: {
                 padding: {
-                    top: 24,
+                    top: 40,
                 }
             }
         },
-        plugins: window.ChartDataLabels ? [window.ChartDataLabels] : []
+        plugins: window.ChartDataLabels ? [groupLabelPlugin, window.ChartDataLabels] : []
     })
 }
 
@@ -699,6 +768,74 @@ function buildCompareChart() {
         })
     }
 
+    const groupLabelPlugin = {
+        id: 'groupLabelPlugin',
+        afterDatasetsDraw(chart) {
+            const { ctx, chartArea } = chart
+            if (!ctx || !chartArea) return
+            if (chart.data.datasets.length < 6) return
+            const days = chart.data.labels.length
+            for (let i = 0; i < days; i++) {
+                const metaStu0 = chart.getDatasetMeta(0)
+                const metaStu2 = chart.getDatasetMeta(2)
+                const barStu0 = metaStu0.data[i]
+                const barStu2 = metaStu2.data[i]
+                if (!barStu0 || !barStu2) continue
+                const stuLeft = Math.min(barStu0.x, barStu2.x) - barStu0.width / 2
+                const stuRight = Math.max(barStu0.x, barStu2.x) + barStu2.width / 2
+                const metaTea3 = chart.getDatasetMeta(3)
+                const metaTea5 = chart.getDatasetMeta(5)
+                const barTea3 = metaTea3.data[i]
+                const barTea5 = metaTea5.data[i]
+                if (!barTea3 || !barTea5) continue
+                const teaLeft = Math.min(barTea3.x, barTea5.x) - barTea3.width / 2
+                const teaRight = Math.max(barTea3.x, barTea5.x) + barTea5.width / 2
+                const marginX = 1;
+                const marginY = 1;
+                ctx.save()
+                ctx.strokeStyle = '#eff6ff'
+                ctx.lineWidth = 2.5
+                ctx.beginPath()
+                ctx.rect(
+                    stuLeft - marginX,
+                    chartArea.top - marginY,
+                    (stuRight - stuLeft) + marginX * 2,
+                    (chartArea.bottom - chartArea.top) + marginY * 2
+                )
+                ctx.stroke()
+                ctx.restore()
+                ctx.save()
+                ctx.strokeStyle = '#fefce8'
+                ctx.lineWidth = 2.5
+                ctx.beginPath()
+                ctx.rect(
+                    teaLeft - marginX,
+                    chartArea.top - marginY,
+                    (teaRight - teaLeft) + marginX * 2,
+                    (chartArea.bottom - chartArea.top) + marginY * 2
+                )
+                ctx.stroke()
+                ctx.restore()
+                if (window.innerWidth >= 640) {
+                    ctx.save()
+                    ctx.font = 'bold 12px sans-serif'
+                    ctx.fillStyle = '#222'
+                    ctx.textAlign = 'center'
+                    ctx.textBaseline = 'middle'
+                    ctx.fillText('นักเรียน', (stuLeft + stuRight) / 2, chartArea.top + 30)
+                    ctx.restore()
+
+                    ctx.save()
+                    ctx.font = 'bold 12px sans-serif'
+                    ctx.fillStyle = '#222'
+                    ctx.textAlign = 'center'
+                    ctx.textBaseline = 'middle'
+                    ctx.fillText('ครู', (teaLeft + teaRight) / 2, chartArea.top + 30)
+                    ctx.restore()
+                }
+            }
+        }
+    }
     compareChart = new ChartLib(compareChartRef.value, {
         type: compare.value.chartType,
         data: { labels: dates.map(formatLabelDate), datasets },
@@ -739,11 +876,11 @@ function buildCompareChart() {
             },
             layout: {
                 padding: {
-                    top: 24,
+                    top: 40,
                 }
             }
         },
-        plugins: window.ChartDataLabels ? [window.ChartDataLabels] : []
+        plugins: window.ChartDataLabels ? [groupLabelPlugin, window.ChartDataLabels] : []
     })
 }
 

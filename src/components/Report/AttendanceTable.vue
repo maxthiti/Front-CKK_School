@@ -366,8 +366,8 @@ async function exportAllToExcel() {
                         'ตำแหน่ง': item.position,
                         'ชั้นเรียน/แผนก': item.department ? item.department : `${item.grade}/${item.classroom}`,
                         'วันที่': formatDateTH(att.date),
-                        'เวลาเข้าทำงาน': (att.timeStamps && att.timeStamps.length > 0) ? att.timeStamps.map(ts => ts.timestamp).sort()[0].split(' ')[1] : '-',
-                        'เวลาออกงาน': (att.timeStamps && att.timeStamps.length > 1) ? att.timeStamps.map(ts => ts.timestamp).sort().slice(-1)[0].split(' ')[1] : '-',
+                        'เวลาเข้า': (att.timeStamps && att.timeStamps.length > 0) ? att.timeStamps.map(ts => ts.timestamp).sort()[0].split(' ')[1] : '-',
+                        'เวลาออก': (att.timeStamps && att.timeStamps.length > 1) ? att.timeStamps.map(ts => ts.timestamp).sort().slice(-1)[0].split(' ')[1] : '-',
                         'สถานะ': getStatus(att),
                     })
                 })
@@ -378,8 +378,8 @@ async function exportAllToExcel() {
                     'ตำแหน่ง': item.position,
                     'ชั้นเรียน/แผนก': item.department ? item.department : `${item.grade}/${item.classroom}`,
                     'วันที่': '-',
-                    'เวลาเข้าทำงาน': '-',
-                    'เวลาออกงาน': '-',
+                    'เวลาเข้า': '-',
+                    'เวลาออก': '-',
                     'สถานะ': '-',
                 })
             }
@@ -394,7 +394,7 @@ async function exportAllToExcel() {
         worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' }
         worksheet.getCell('A1').font = { bold: true }
 
-        const header = ['รหัส', 'ชื่อ-สกุล', 'ตำแหน่ง', 'ชั้นเรียน/แผนก', 'วันที่', 'เวลาเข้าทำงาน', 'เวลาออกงาน', 'สถานะ']
+        const header = ['รหัส', 'ชื่อ-สกุล', 'ตำแหน่ง', 'ชั้นเรียน/แผนก', 'วันที่', 'เวลาเข้า', 'เวลาออก', 'สถานะ']
         worksheet.addRow(header)
 
         rows.forEach(row => {

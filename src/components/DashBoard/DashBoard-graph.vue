@@ -170,7 +170,6 @@ function buildBarChart(start, end) {
     const map = {}
     rawStats.value.forEach(s => { map[`${s.role}_${s.date}`] = s })
 
-
     const studentOntime = []
     const studentLate = []
     const studentNotScan = []
@@ -204,7 +203,6 @@ function buildBarChart(start, end) {
         return thaiDays[dayIdx]
     })
 
-
     const { primary, primaryLight, secondary, secondaryLight } = getThemeColors()
     const black = 'rgba(0,0,0,0.85)'
     const red = 'rgba(239,68,68,0.85)'
@@ -222,6 +220,90 @@ function buildBarChart(start, end) {
             { label: 'ครู (สาย)', data: teacherLate, backgroundColor: black, borderColor: black },
             { label: 'ครู (ไม่ได้สแกน)', data: teacherNotScan, backgroundColor: red, borderColor: red }
         )
+    }
+
+    const groupLabelPlugin = {
+        id: 'groupLabelPlugin',
+        afterDatasetsDraw(chart) {
+            const { ctx, chartArea } = chart
+            if (!ctx || !chartArea) return
+            if (isTeacher) return
+
+            // if (window.innerWidth < 640) return
+
+            const days = chart.data.labels.length
+
+            for (let i = 0; i < days; i++) {
+                const meta0 = chart.getDatasetMeta(0)
+                const bar0 = meta0.data[i]
+                const meta5 = chart.getDatasetMeta(5)
+                const bar5 = meta5.data[i]
+                if (!bar0 || !bar5) continue
+
+                const metaStu0 = chart.getDatasetMeta(0)
+                const metaStu2 = chart.getDatasetMeta(2)
+                const barStu0 = metaStu0.data[i]
+                const barStu2 = metaStu2.data[i]
+                if (!barStu0 || !barStu2) continue
+                const stuLeft = Math.min(barStu0.x, barStu2.x) - barStu0.width / 2
+                const stuRight = Math.max(barStu0.x, barStu2.x) + barStu2.width / 2
+
+                const metaTea3 = chart.getDatasetMeta(3)
+                const metaTea5 = chart.getDatasetMeta(5)
+                const barTea3 = metaTea3.data[i]
+                const barTea5 = metaTea5.data[i]
+                if (!barTea3 || !barTea5) continue
+                const teaLeft = Math.min(barTea3.x, barTea5.x) - barTea3.width / 2
+                const teaRight = Math.max(barTea3.x, barTea5.x) + barTea5.width / 2
+
+                const marginX = 1;
+                const marginY = 1;
+
+                ctx.save()
+                ctx.strokeStyle = '#eff6ff'
+                ctx.lineWidth = 2.5
+                ctx.beginPath()
+                ctx.rect(
+                    stuLeft - marginX,
+                    chartArea.top - marginY,
+                    (stuRight - stuLeft) + marginX * 2,
+                    (chartArea.bottom - chartArea.top) + marginY * 2
+                )
+                ctx.stroke()
+                ctx.restore()
+
+                ctx.save()
+                ctx.strokeStyle = '#fefce8'
+                ctx.lineWidth = 2.5
+                ctx.beginPath()
+                ctx.rect(
+                    teaLeft - marginX,
+                    chartArea.top - marginY,
+                    (teaRight - teaLeft) + marginX * 2,
+                    (chartArea.bottom - chartArea.top) + marginY * 2
+                )
+                ctx.stroke()
+                ctx.restore()
+
+                if (window.innerWidth >= 640) {
+                    ctx.save()
+                    ctx.font = 'bold 12px sans-serif'
+                    ctx.fillStyle = '#222'
+                    ctx.textAlign = 'center'
+                    ctx.textBaseline = 'middle'
+                    ctx.fillText('นักเรียน', (stuLeft + stuRight) / 2, chartArea.top + 30)
+                    ctx.restore()
+
+                    ctx.save()
+                    ctx.font = 'bold 12px sans-serif'
+                    ctx.fillStyle = '#222'
+                    ctx.textAlign = 'center'
+                    ctx.textBaseline = 'middle'
+                    ctx.fillText('ครู', (teaLeft + teaRight) / 2, chartArea.top + 30)
+                    ctx.restore()
+                }
+            }
+        }
     }
 
     barChart = new ChartLib(barChartRef.value, {
@@ -273,11 +355,11 @@ function buildBarChart(start, end) {
             },
             layout: {
                 padding: {
-                    top: 24,
+                    top: 40,
                 }
             }
         },
-        plugins: [window.ChartDataLabels]
+        plugins: [groupLabelPlugin, window.ChartDataLabels]
     })
 }
 

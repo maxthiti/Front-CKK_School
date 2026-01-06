@@ -2,12 +2,12 @@
     <div class="p-0 md:p-6 space-y-6">
         <div class="flex justify-between items-center text-white">
             <h1 class="text-lg md:text-3xl font-bold">ตารางขาดเรียน/ขาดงาน</h1>
-            <input v-model="filters.date" type="date" @change="fetchData"
+            <input v-model="filters.date" type="date" @change="fetchData" :max="getDefaultDate()"
                 class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
         </div>
 
         <div class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
                         <span class="label-text text-sm font-medium">ประเภท</span>
@@ -24,6 +24,26 @@
                     </label>
                     <input v-model="filters.search" type="text" placeholder="กรอกชื่อหรือรหัส"
                         class="input input-sm input-bordered w-full" />
+                </div>
+                <div class="form-control">
+                    <label class="label py-1">
+                        <span class="label-text text-sm font-medium">เลือกชั้นปี</span>
+                    </label>
+                    <select v-model="filters.grade" @change="handleGradeChange"
+                        class="select select-sm select-bordered w-full" :disabled="filters.role === 'teacher'">
+                        <option value="">ทุกชั้นปี</option>
+                        <option v-for="grade in allGrades" :key="grade" :value="grade">{{ grade }}</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label py-1">
+                        <span class="label-text text-sm font-medium">เลือกห้อง</span>
+                    </label>
+                    <select v-model="filters.classroom" @change="handleClassroomChange"
+                        class="select select-sm select-bordered w-full" :disabled="filters.role === 'teacher'">
+                        <option value="">ทุกห้อง</option>
+                        <option v-for="room in allRooms" :key="room" :value="room">{{ room }}</option>
+                    </select>
                 </div>
                 <div v-if="residentRole === 'teacher'" class="form-control flex flex-col items-center md:items-end">
                     <div
@@ -50,7 +70,8 @@
 
         <div v-else>
             <MissedTable :data="paginatedData" :pagination="paginationData" :role="filters.role"
-                :dateRange="{ start: filters.date, end: filters.date }" @page-change="goToPage" />
+                :dateRange="{ start: filters.date, end: filters.date }" :grade="filters.grade"
+                :classroom="filters.classroom" @page-change="goToPage" />
         </div>
     </div>
 </template>
@@ -59,6 +80,7 @@
 import { ref, onMounted, computed } from 'vue'
 import MissedTable from '../../../components/Report/MissedTable.vue'
 import reportApi from '../../../api/report.js'
+import { ClassRoomService } from '../../../api/class-room.js'
 
 const residentRole = localStorage.getItem('residentRole') || ''
 const teacherGrade = localStorage.getItem('grade') || ''
@@ -67,6 +89,11 @@ const teacherClassroom = localStorage.getItem('classroom') || ''
 const loading = ref(false)
 const error = ref(null)
 const missedData = ref([])
+
+const classRoomService = new ClassRoomService()
+const allClassRooms = ref([])
+const allGrades = ref([])
+const allRooms = ref([])
 
 const filters = ref({
     role: 'student',
@@ -115,6 +142,10 @@ const fetchData = async () => {
 
 const handleRoleChange = () => {
     pagination.value.page = 1
+    if (filters.value.role === 'teacher') {
+        filters.value.grade = ''
+        filters.value.classroom = ''
+    }
     fetchData()
 }
 
@@ -122,9 +153,22 @@ const isNumericSearch = computed(() => /^\d+$/.test(filters.value.search.trim())
 
 const filteredData = computed(() => {
     let base = missedData.value
+
+    const grade = filters.value.grade
+    const room = filters.value.classroom
+
+    if (grade && room) {
+        base = base.filter(item => String(item.grade) === String(grade) && String(item.classroom) === String(room))
+    } else if (grade) {
+        base = base.filter(item => String(item.grade) === String(grade))
+    } else if (room) {
+        base = base.filter(item => String(item.classroom) === String(room))
+    }
+
     if (residentRole === 'teacher' && teacherGrade && teacherClassroom) {
         base = base.filter(item => item.position === 'นักเรียน' && item.grade === teacherGrade && item.classroom == teacherClassroom)
     }
+
     const term = filters.value.search.trim()
     if (!term) return base
     if (isNumericSearch.value) {
@@ -133,6 +177,13 @@ const filteredData = computed(() => {
     const lower = term.toLowerCase()
     return base.filter(item => item.name && item.name.toLowerCase().includes(lower))
 })
+
+const handleGradeChange = () => {
+    pagination.value.page = 1
+}
+const handleClassroomChange = () => {
+    pagination.value.page = 1
+}
 
 const totalPages = computed(() => Math.ceil(filteredData.value.length / pagination.value.limit) || 1)
 
@@ -156,6 +207,21 @@ const goToPage = (page) => {
 
 onMounted(() => {
     fetchData()
+    try {
+        classRoomService.getClassRooms().then(res => {
+            allClassRooms.value = res.data || []
+            const gradesSet = new Set()
+            const roomsSet = new Set()
+            allClassRooms.value.forEach(item => {
+                if (item.grade) gradesSet.add(item.grade)
+                if (item.classroom) roomsSet.add(item.classroom)
+            })
+            allGrades.value = Array.from(gradesSet)
+            allRooms.value = Array.from(roomsSet)
+        })
+    } catch (err) {
+        console.error('Error fetching class rooms:', err)
+    }
 })
 </script>
 

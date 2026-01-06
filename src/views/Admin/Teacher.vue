@@ -23,9 +23,10 @@
             </div>
         </div>
 
+
         <div class="card bg-base-100 shadow-md">
             <div class="card-body p-4">
-                <div class="flex flex-col sm:flex-row gap-3">
+                <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0">
                     <div class="form-control w-full sm:flex-1">
                         <label class="label py-1">
                             <span class="label-text text-sm">ค้นหา</span>
@@ -42,18 +43,30 @@
                         </div>
                     </div>
 
-                    <div class="form-control w-full sm:w-auto">
-                        <label class="label py-1">
-                            <span class="label-text text-sm">&nbsp;</span>
-                        </label>
-                        <button @click="resetSearch" class="btn btn-ghost btn-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            รีเซ็ต
-                        </button>
+                    <div class="flex justify-between sm:justify-start w-full sm:w-auto gap-2">
+                        <div class="flex items-end">
+                            <button @click="resetSearch" class="btn btn-ghost btn-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                รีเซ็ต
+                            </button>
+                        </div>
+
+                        <div class="flex sm:form-control w-auto gap-1">
+                            <label class="label py-1">
+                                <span class="label-text text-sm">แถวต่อหน้า</span>
+                            </label>
+                            <select v-model.number="itemsPerPage" @change="handleItemsPerPageChange"
+                                class="select select-bordered select-sm">
+                                <option :value="5">5</option>
+                                <option :value="10">10</option>
+                                <option :value="20">20</option>
+                                <option :value="100">100</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -154,18 +167,18 @@ const searchQuery = ref('')
 const filterDepartment = ref('')
 const filterPosition = ref('')
 const currentPage = ref(1)
-const itemsPerPage = 5
+const itemsPerPage = ref(5)
 const imageBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
 const updateModalRef = ref(null)
 const createModalRef = ref(null)
 const deleteModalRef = ref(null)
 const rePasswordModalRef = ref(null)
 
-const totalPages = computed(() => Math.ceil(teachers.value.length / itemsPerPage))
+const totalPages = computed(() => Math.ceil(teachers.value.length / itemsPerPage.value))
 
 const paginatedTeachers = computed(() => {
-    const start = (currentPage.value - 1) * itemsPerPage
-    const end = start + itemsPerPage
+    const start = (currentPage.value - 1) * itemsPerPage.value
+    const end = start + itemsPerPage.value
     return teachers.value.slice(start, end)
 })
 
@@ -184,6 +197,10 @@ const displayedPages = computed(() => {
     }
     return pages
 })
+
+const handleItemsPerPageChange = () => {
+    currentPage.value = 1
+}
 
 const goToPage = (page) => {
     if (page >= 1 && page <= totalPages.value) {

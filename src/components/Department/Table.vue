@@ -10,24 +10,42 @@
             </div>
 
             <div v-else class="overflow-x-auto">
-                <table class="table table-zebra text-xs sm:text-sm">
+                <table class="table table-zebra">
                     <thead>
                         <tr>
-                            <th class="w-5 md:w-16 px-2 py-1">#</th>
-                            <th class="px-2 py-1">ชื่อแผนก</th>
+                            <th class="w-10 md:w-20">#</th>
+                            <th class="">ชื่อแผนก</th>
                             <th v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'" class="w-10 md:w-24 px-2 py-1 text-center">จัดการ</th>
                         </tr>
                     </thead>
+                    <!-- <tbody>
+                        <tr v-for="(dept, index) in departments" :key="dept._id">
+                            <td class="">{{ index + 1 }}</td>
+                            <td class="font-medium">{{ dept.name }}</td>
+                            <td v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'">
+                                <div class="flex justify-center">
+                                    <button @click="$emit('delete', dept)"
+                                        class="btn btn-ghost btn-sm btn-square" title="ลบ">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-error"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody> -->
                     <tbody>
                         <tr v-for="(dept, index) in departments" :key="dept._id">
-                            <td class="px-2 py-1">{{ index + 1 }}</td>
-                            <td class="font-medium px-2 py-2">{{ dept.name }}</td>
-                            <td v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'" class="px-2 py-1">
-                                <div class="flex gap-1 sm:gap-2 justify-center">
-                                    <button @click="$emit('delete', dept)"
-                                        class="btn btn-xs sm:btn-sm btn-error btn-outline" title="ลบ">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4"
-                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <td>{{ index + 1 }}</td>
+                            <td class="font-medium">{{ dept.name }}</td>
+                            <td v-if="auth.user?.role !== 'teacher' && auth.user?.role !== 'viewer'">
+                                <div class="flex justify-center">
+                                    <button @click="$emit('delete', dept)" class="btn btn-ghost btn-sm btn-square"
+                                        title="ลบ">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-error" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
