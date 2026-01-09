@@ -4,7 +4,8 @@
             @click="exportDocxLeaveReport">
             เอกสารสรุปการออกงาน
         </button>
-        <button class="btn btn-sm btn-success" :disabled="loadingExport" @click="exportMissedToExcel">
+        <button v-if="!hideExport" class="btn btn-sm btn-success" :disabled="loadingExport"
+            @click="exportMissedToExcel">
             <span v-if="loadingExport" class="loading loading-spinner loading-xs mr-2"></span>
             <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
@@ -22,58 +23,87 @@
                     <th>ชื่อ-สกุล</th>
                     <th class="text-center">ตำแหน่ง</th>
                     <th class="text-center">ชั้นเรียน/แผนก</th>
+                    <th class="text-center">วันที่ขาด</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-if="data.length === 0">
-                    <td colspan="5" class="text-center py-8 text-base-content/60">
+                <tr v-if="flattenedData.length === 0">
+                    <td colspan="6" class="text-center py-8 text-base-content/60">
                         ไม่พบข้อมูล
                     </td>
                 </tr>
-                <tr v-for="item in data" :key="item._id" class="hover">
-                    <td class="text-center">{{ item.userid }}</td>
-                    <td class="text-center">
-                        <img v-if="item.picture" :src="`${imgProBaseUrl}${item.picture}`" alt="profile"
-                            class="w-10 h-10 rounded-full object-cover inline-block cursor-pointer"
-                            @click="viewImage(item.picture)" @error="item.picture = null" />
-                        <div v-else
-                            class="w-10 h-10 rounded-full bg-base-200 inline-block flex items-center justify-center">
-                            <span class="text-base font-bold">{{ getInitials(item.name) }}</span>
-                        </div>
-                    </td>
-                    <td>{{ item.name }}</td>
-                    <td class="text-center">{{ item.position }}</td>
-                    <td class="text-center">
-                        <span v-if="item.position === 'นักเรียน'">{{ item.grade }}/{{ item.classroom }}</span>
-                        <span v-else>-</span>
-                    </td>
-                </tr>
+                <template v-for="group in groupedData" :key="group[0]._id">
+                    <tr class="hover">
+                        <td class="text-center align-center">{{ group[0].userid }}</td>
+                        <td class="text-center align-center flex items-center justify-center">
+                            <img v-if="group[0].picture" :src="`${imgProBaseUrl}${group[0].picture}`" alt="profile"
+                                class="w-10 h-10 rounded-full object-cover cursor-pointer"
+                                @click="viewImage(group[0].picture)" />
+                            <div v-else class="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center">
+                                <span class="text-base font-bold">{{ getInitials(group[0].name) }}</span>
+                            </div>
+                        </td>
+                        <td class="align-center">{{ group[0].name }}</td>
+                        <td class="text-center align-center">{{ group[0].position }}</td>
+                        <td class="text-center align-center">
+                            <span v-if="group[0].position === 'นักเรียน'">{{ group[0].grade }}/{{ group[0].classroom
+                                }}</span>
+                            <span v-else>{{ group[0].department || '-' }}</span>
+                        </td>
+                        <td class="text-center">{{ formatDate(group[0].missed_date) }}</td>
+                    </tr>
+                    <tr v-for="item in group.slice(1)" :key="item._id + '-' + item.missed_date" class="hover">
+                        <td class="text-center"></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-center">{{ formatDate(item.missed_date) }}</td>
+                    </tr>
+                </template>
             </tbody>
         </table>
     </div>
 
     <div class="lg:hidden space-y-4">
-        <div v-if="data.length === 0" class="text-center py-8 text-base-content/60 bg-base-100 rounded-lg shadow-lg">
+        <div v-if="flattenedData.length === 0"
+            class="text-center py-8 text-base-content/60 bg-base-100 rounded-lg shadow-lg">
             ไม่พบข้อมูล
         </div>
-        <div v-for="item in data" :key="item._id" class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3">
+        <div v-for="group in groupedData" :key="group[0]._id + '-mobile-group'"
+            class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3">
             <div class="flex items-start gap-3">
-                <img v-if="item.picture" :src="`${imgProBaseUrl}${item.picture}`" alt="profile"
-                    class="w-10 h-10 rounded-full object-cover cursor-pointer" @click="viewImage(item.picture)" />
+                <img v-if="group[0].picture" :src="`${imgProBaseUrl}${group[0].picture}`" alt="profile"
+                    class="w-10 h-10 rounded-full object-cover cursor-pointer" @click="viewImage(group[0].picture)" />
+                <div v-else class="w-10 h-10 rounded-full bg-base-200 flex items-center justify-center">
+                    <span class="text-base font-bold">{{ getInitials(group[0].name) }}</span>
+                </div>
                 <div class="flex-1">
-                    <div class="badge badge-primary badge-sm mb-2">{{ item.userid }}</div>
-                    <h3 class="font-bold text-md">{{ item.name }}</h3>
-                    <p class="text-sm text-base-content/70">{{ item.position }}</p>
+                    <div class="badge badge-primary badge-sm mb-2">{{ group[0].userid }}</div>
+                    <h3 class="font-bold text-md">{{ group[0].name }}</h3>
+                    <p class="text-sm text-base-content/70">{{ group[0].position }}</p>
                 </div>
             </div>
 
             <div class="divider my-2"></div>
 
             <div class="text-sm">
-                <span class="text-base-content/60">ชั้นเรียน:</span>
-                <p class="font-medium inline ml-2" v-if="item.position === 'นักเรียน'">{{ item.grade }}/{{
-                    item.classroom }}</p>
-                <p class="font-medium inline ml-2" v-else>-</p>
+                <span class="text-base-content/60" v-if="group[0].position === 'นักเรียน'">ชั้นเรียน:</span>
+                <span class="text-base-content/60" v-else>แผนก:</span>
+                <p class="font-medium inline ml-2" v-if="group[0].position === 'นักเรียน'">{{ group[0].grade }}/{{
+                    group[0].classroom }}</p>
+                <p class="font-medium inline ml-2" v-else>{{ group[0].department || '-' }}</p>
+            </div>
+
+            <div class="divider my-2"></div>
+
+            <div class="text-sm">
+                <span class="text-base-content/60">วันที่ขาด:</span>
+                <div class="space-y-1 mt-2">
+                    <div v-for="item in group" :key="item._id + '-mobile-date-' + item.missed_date" class="font-medium">
+                        {{ formatDate(item.missed_date) }}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -96,7 +126,8 @@
         </div>
     </div>
 
-    <div v-if="pagination.total_items > 0" class="text-center text-sm text-base-content/60 mt-4 text-white">
+    <div v-if="pagination.total_items > 0" class="text-center text-sm text-base-content/60 mt-4"
+        :class="summaryTextColor">
         แสดง {{ ((pagination.page - 1) * pagination.limit) + 1 }} - {{
             Math.min(pagination.page * pagination.limit, pagination.total_items)
         }} จาก {{ pagination.total_items }} รายการ
@@ -153,8 +184,51 @@ const props = defineProps({
         type: [String, Number],
         required: false,
         default: undefined
+    },
+    hideExport: {
+        type: Boolean,
+        required: false,
+        default: false
+    },
+    summaryTextColor: {
+        type: String,
+        default: 'text-white'
     }
 })
+
+const groupedData = computed(() => {
+    const groups = {};
+    flattenedData.value.forEach(item => {
+        if (!groups[item._id]) groups[item._id] = [];
+        groups[item._id].push(item);
+    });
+    return Object.values(groups);
+});
+
+const flattenedData = computed(() => {
+    if (!props.data) return [];
+    const arr = [];
+    props.data.forEach(item => {
+        if (Array.isArray(item.missed_date) && item.missed_date.length > 0) {
+            item.missed_date.forEach(date => {
+                arr.push({ ...item, missed_date: date });
+            });
+        } else {
+            arr.push({ ...item, missed_date: null });
+        }
+    });
+    return arr;
+});
+
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('th-TH', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+}
 
 const emit = defineEmits(['page-change'])
 
@@ -225,10 +299,11 @@ async function exportMissedToExcel() {
     loadingExport.value = true;
     try {
         const params = {
-            date: props.dateRange?.end,
+            start: props.dateRange?.start,
+            end: props.dateRange?.end,
             role: props.role,
             page: 1,
-            limit: props.pagination?.limit || 50,
+            limit: 50,
         };
         if (props.grade !== undefined && props.grade !== null && props.grade !== '') params.grade = props.grade;
         if (props.classroom !== undefined && props.classroom !== null && props.classroom !== '') params.classroom = props.classroom;
@@ -246,48 +321,59 @@ async function exportMissedToExcel() {
         } while (params.page <= totalPages);
 
 
-        const uniqueMap = new Map();
+        const rows = [];
         allData.forEach(item => {
-            if (!uniqueMap.has(item.userid)) {
-                uniqueMap.set(item.userid, item);
+            if (Array.isArray(item.missed_date) && item.missed_date.length > 0) {
+                item.missed_date.forEach(date => {
+                    rows.push({
+                        'รหัส': item.userid,
+                        'ชื่อ-สกุล': item.name,
+                        'ตำแหน่ง': item.position,
+                        'ชั้นเรียน/แผนก': item.position === 'นักเรียน'
+                            ? `${item.grade}/${item.classroom}`
+                            : (item.department || '-'),
+                        'วันที่ขาด': formatDate(date),
+                    });
+                });
+            } else {
+                rows.push({
+                    'รหัส': item.userid,
+                    'ชื่อ-สกุล': item.name,
+                    'ตำแหน่ง': item.position,
+                    'ชั้นเรียน/แผนก': item.position === 'นักเรียน'
+                        ? `${item.grade}/${item.classroom}`
+                        : (item.department || '-'),
+                    'วันที่ขาด': '-',
+                });
             }
         });
-        let uniqueData = Array.from(uniqueMap.values());
 
-        if (props.grade !== undefined && props.grade !== null && props.grade !== '') {
-            uniqueData = uniqueData.filter(item => String(item.grade) === String(props.grade));
+        let filteredRows = rows;
+        if (props.role === 'student') {
+            if (props.grade !== undefined && props.grade !== null && props.grade !== '') {
+                filteredRows = filteredRows.filter(item => String(item['ชั้นเรียน/แผนก']).startsWith(String(props.grade + '/')));
+            }
+            if (props.classroom !== undefined && props.classroom !== null && props.classroom !== '') {
+                filteredRows = filteredRows.filter(item => String(item['ชั้นเรียน/แผนก']).endsWith('/' + String(props.classroom)));
+            }
         }
-        if (props.classroom !== undefined && props.classroom !== null && props.classroom !== '') {
-            uniqueData = uniqueData.filter(item => String(item.classroom) === String(props.classroom));
-        }
-
-        const rows = uniqueData.map(item => ({
-            'รหัส': item.userid,
-            'ชื่อ-สกุล': item.name,
-            'ตำแหน่ง': item.position,
-            'ชั้นเรียน/แผนก': item.position === 'นักเรียน' ? `${item.grade}/${item.classroom}` : (item.department || '-'),
-        }));
 
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('MissedDetail');
 
-        let reportDate = '';
-        if (props.dateRange && props.dateRange.end) {
-            const [y, m, d] = props.dateRange.end.split('-');
-            reportDate = `${d}/${m}/${y}`;
-        } else {
-            const now = new Date();
-            reportDate = now.toLocaleDateString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        let reportRange = '';
+        if (props.dateRange && props.dateRange.start && props.dateRange.end) {
+            reportRange = `(${formatDate(props.dateRange.start)} - ${formatDate(props.dateRange.end)})`;
         }
-        worksheet.addRow([`รายงานข้อมูลขาดเรียน/ขาดงาน (${reportDate})`]);
-        worksheet.mergeCells('A1:D1');
+        worksheet.addRow([`รายงานข้อมูลขาดเรียน/ขาดงาน ${reportRange}`]);
+        worksheet.mergeCells('A1:E1');
         worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
         worksheet.getCell('A1').font = { bold: true };
 
-        const header = ['รหัส', 'ชื่อ-สกุล', 'ตำแหน่ง', 'ชั้นเรียน/แผนก'];
+        const header = ['รหัส', 'ชื่อ-สกุล', 'ตำแหน่ง', 'ชั้นเรียน/แผนก', 'วันที่ขาด'];
         worksheet.addRow(header);
 
-        rows.forEach(row => {
+        filteredRows.forEach(row => {
             worksheet.addRow(header.map(h => row[h]));
         });
 
@@ -296,13 +382,14 @@ async function exportMissedToExcel() {
             { width: 40 },
             { width: 20 },
             { width: 40 },
+            { width: 15 },
         ];
         worksheet.getRow(2).alignment = { horizontal: 'center', vertical: 'middle' };
         worksheet.getColumn(1).alignment = { horizontal: 'center', vertical: 'middle' };
         worksheet.getRow(2).font = { bold: true };
 
         const buffer = await workbook.xlsx.writeBuffer();
-        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), `MissedDetail.xlsx`);
+        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), `MissedDetail_${props.dateRange?.start || ''}_${props.dateRange?.end || ''}.xlsx`);
     } catch (e) {
         alert('เกิดข้อผิดพลาดในการส่งออก Excel');
         console.error(e);
@@ -321,9 +408,10 @@ async function exportDocxLeaveReport() {
             if (res.ok) pictureBuffer = await res.arrayBuffer();
         } catch (e) { pictureBuffer = null; }
 
+        // ใช้แค่วันที่เริ่มต้น (start) เท่านั้น
         const [stats, missed] = await Promise.all([
-            reportApi.getDailyStats(props.dateRange.start, props.dateRange.end),
-            reportApi.getMissedReport({ date: props.dateRange.end, role: 'teacher' }),
+            reportApi.getDailyStats(props.dateRange.start, props.dateRange.start),
+            reportApi.getMissedReport({ start: props.dateRange.start, end: props.dateRange.start, role: 'teacher', classroom: 0 }),
         ]);
         const totalTeachers = stats?.data?.total_teachers || 0;
         const notCheckOut = missed?.data?.length || 0;
@@ -518,7 +606,7 @@ async function exportDocxLeaveReport() {
                                 children: [
                                     new TableCell({
                                         children: [new Paragraph({
-                                            children: [new TextRun({ text: `  ด้วยงานปฏิบัติราชการของบุคลากรทางการศึกษา ได้จัดทำสรุปรายงานการลงเวลากลับของข้าราชการครู ประจำวันที่ ${props.dateRange ? formatDateRangeTH(props.dateRange.start, props.dateRange.end) : ''} ดังนี้`, font, size: 32 })],
+                                            children: [new TextRun({ text: `  ด้วยงานปฏิบัติราชการของบุคลากรทางการศึกษา ได้จัดทำสรุปรายงานการลงเวลากลับของข้าราชการครู ประจำวันที่ ${props.dateRange ? formatDateTHFull(props.dateRange.start) : ''} ดังนี้`, font, size: 32 })],
                                         })],
                                         columnSpan: 4,
                                         borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
@@ -552,6 +640,7 @@ async function exportDocxLeaveReport() {
         loadingExportDoc.value = false
     }
 }
+
 function formatDateTHFull(dateStr) {
     if (!dateStr) return '-';
     const d = new Date(dateStr);

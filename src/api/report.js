@@ -34,14 +34,35 @@ const getAttendanceReport = async (params) => {
 const getLateReport = async (params) => {
   try {
     const token = localStorage.getItem("token");
+    const queryParams = {
+      start: params.start,
+      end: params.end,
+      role: params.role,
+      name: params.name ?? "",
+      department: params.department ?? "",
+      userid: params.userid ?? "",
+      page: params.page ?? 1,
+      limit: params.limit ?? 20,
+    };
+    if (
+      params.grade !== undefined &&
+      params.grade !== null &&
+      params.grade !== ""
+    ) {
+      queryParams.grade = params.grade;
+    }
+    if (
+      params.classroom !== undefined &&
+      params.classroom !== null &&
+      params.classroom !== ""
+    ) {
+      queryParams.classroom = params.classroom;
+    }
     const response = await axios.get(`${baseUrl}report/late`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      params: {
-        date: params.date,
-        role: params.role,
-      },
+      params: queryParams,
     });
     return response.data;
   } catch (error) {
@@ -53,14 +74,34 @@ const getLateReport = async (params) => {
 const getMissedReport = async (params) => {
   try {
     const token = localStorage.getItem("token");
+    const queryParams = {
+      start: params.start,
+      end: params.end,
+      role: params.role,
+      name: params.name || "",
+      department: params.department || "",
+      userid: params.userid || "",
+    };
+    if (
+      params.grade !== undefined &&
+      params.grade !== null &&
+      params.grade !== ""
+    ) {
+      queryParams.grade = params.grade;
+    }
+    if (
+      params.classroom === 0 ||
+      (params.classroom !== undefined &&
+        params.classroom !== null &&
+        params.classroom !== "")
+    ) {
+      queryParams.classroom = params.classroom;
+    }
     const response = await axios.get(`${baseUrl}report/missed`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      params: {
-        date: params.date,
-        role: params.role,
-      },
+      params: queryParams,
     });
     return response.data;
   } catch (error) {

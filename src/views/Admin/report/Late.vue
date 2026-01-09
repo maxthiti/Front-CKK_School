@@ -1,9 +1,14 @@
 <template>
     <div class="p-0 md:p-6 space-y-6">
-        <div class="flex justify-between items-center text-white">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center text-white gap-2">
             <h1 class="text-lg md:text-3xl font-bold">ตารางมาสาย</h1>
-            <input v-model="filters.date" type="date" @change="fetchData" :max="getDefaultDate()"
-                class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
+            <div class="flex flex-row gap-2 items-stretch md:items-center justify-end md:justify-center">
+                <input v-model="filters.start" type="date" @change="fetchData" :max="getDefaultDate()"
+                    class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
+                <span>-</span>
+                <input v-model="filters.end" type="date" @change="fetchData" :max="getDefaultDate()"
+                    class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
+            </div>
         </div>
 
         <div class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3">
@@ -23,9 +28,9 @@
                         <span class="label-text text-sm font-medium">ค้นหาชื่อ/รหัส</span>
                     </label>
                     <input v-model="filters.search" type="text" placeholder="กรอกชื่อหรือรหัส"
-                        class="input input-sm input-bordered w-full" />
+                        class="input input-sm input-bordered w-full" @input="fetchData" />
                 </div>
-                <div class="form-control">
+                <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
                         <span class="label-text text-sm font-medium">เลือกชั้นปี</span>
                     </label>
@@ -35,7 +40,7 @@
                         <option v-for="grade in allGrades" :key="grade" :value="grade">{{ grade }}</option>
                     </select>
                 </div>
-                <div class="form-control">
+                <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
                         <span class="label-text text-sm font-medium">เลือกห้อง</span>
                     </label>
@@ -44,6 +49,14 @@
                         <option value="">ทุกห้อง</option>
                         <option v-for="room in allRooms" :key="room" :value="room">{{ room }}</option>
                     </select>
+                </div>
+                <div v-if="residentRole === 'teacher'"
+                    class="form-control md:col-start-4 flex flex-col items-center md:items-end md:justify-end md:h-full">
+                    <div
+                        class="p-1 text-white bg-primary rounded-md text-center min-w-[120px] flex flex-col items-center">
+                        <span class="label-text text-sm font-medium mb-1 text-secondary">ชั้นปี / ห้อง</span>
+                        <span>{{ teacherGrade }}/{{ teacherClassroom }}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -89,7 +102,8 @@ const lateData = ref([])
 
 const filters = ref({
     role: 'student',
-    date: getDefaultDate(),
+    start: getDefaultDate(),
+    end: getDefaultDate(),
     search: '',
     grade: residentRole === 'teacher' ? teacherGrade : '',
     classroom: residentRole === 'teacher' ? teacherClassroom : ''
@@ -108,18 +122,35 @@ function getDefaultDate() {
 const fetchData = async () => {
     loading.value = true
     error.value = null
-
     try {
         let params = {
-            date: filters.value.date,
+            start: filters.value.start,
+            end: filters.value.end,
             role: filters.value.role,
+            page: 1,
+            limit: 50
         }
-        if (residentRole === 'teacher') {
-            params.grade = teacherGrade
-            params.classroom = teacherClassroom
+        const searchTerm = filters.value.search.trim();
+        if (searchTerm) {
+            if (/^\d+$/.test(searchTerm)) {
+                params.userid = searchTerm;
+            } else {
+                params.name = searchTerm;
+            }
+        }
+        if (filters.value.role === 'student') {
+            params.grade = filters.value.grade;
+            if (
+                filters.value.classroom === '' ||
+                filters.value.classroom === undefined ||
+                filters.value.classroom === null ||
+                isNaN(Number(filters.value.classroom))
+            ) {
+            } else {
+                params.classroom = Number(filters.value.classroom);
+            }
         }
         const response = await reportApi.getLateReport(params)
-
         if (response.message === 'Success') {
             lateData.value = response.data || []
             pagination.value.page = 1
@@ -132,12 +163,26 @@ const fetchData = async () => {
     }
 }
 
+
 const handleRoleChange = () => {
     pagination.value.page = 1
     if (filters.value.role === 'teacher') {
         filters.value.grade = ''
         filters.value.classroom = ''
+    } else {
+        filters.value.grade = allGrades.value.length > 0 ? allGrades.value[0] : 'ม.1'
+        filters.value.classroom = allRooms.value.length > 0 ? allRooms.value[0] : '1'
     }
+    fetchData()
+}
+
+const handleGradeChange = () => {
+    pagination.value.page = 1
+    fetchData()
+}
+
+const handleClassroomChange = () => {
+    pagination.value.page = 1
     fetchData()
 }
 
@@ -168,18 +213,17 @@ const filteredData = computed(() => {
     const term = filters.value.search.trim()
     if (!term) return base
     if (isNumericSearch.value) {
-        return base.filter(item => item.userid && item.userid.includes(term))
+        const foundById = base.filter(item => item.userid && item.userid.includes(term))
+        if (foundById.length > 0) {
+            return foundById
+        } else {
+            const lower = term.toLowerCase()
+            return base.filter(item => item.name && item.name.toLowerCase().includes(lower))
+        }
     }
     const lower = term.toLowerCase()
     return base.filter(item => item.name && item.name.toLowerCase().includes(lower))
 })
-
-const handleGradeChange = () => {
-    pagination.value.page = 1
-}
-const handleClassroomChange = () => {
-    pagination.value.page = 1
-}
 
 const totalPages = computed(() => Math.ceil(filteredData.value.length / pagination.value.limit) || 1)
 

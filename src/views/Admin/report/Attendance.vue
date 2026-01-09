@@ -48,12 +48,7 @@
                     <select v-model="filters.grade" class="select select-sm select-bordered w-full"
                         :disabled="filters.role === 'teacher'">
                         <option value="">ทั้งหมด</option>
-                        <option value="ม.1">ม.1</option>
-                        <option value="ม.2">ม.2</option>
-                        <option value="ม.3">ม.3</option>
-                        <option value="ม.4">ม.4</option>
-                        <option value="ม.5">ม.5</option>
-                        <option value="ม.6">ม.6</option>
+                        <option v-for="grade in availableGrades" :key="grade" :value="grade">{{ grade }}</option>
                     </select>
                 </div>
 
@@ -61,8 +56,11 @@
                     <label class="label py-1">
                         <span class="label-text text-sm font-medium">ห้อง</span>
                     </label>
-                    <input v-model.number="filters.classroom" type="number" placeholder="หมายเลขห้อง"
-                        class="input input-sm input-bordered w-full" :disabled="filters.role === 'teacher'" min="0" />
+                    <select v-model="filters.classroom" class="select select-sm select-bordered w-full"
+                        :disabled="filters.role === 'teacher'">
+                        <option value="">ทั้งหมด</option>
+                        <option v-for="room in availableClassrooms" :key="room" :value="room">{{ room }}</option>
+                    </select>
                 </div>
                 <div v-if="residentRole === 'teacher'"
                     class="form-control col-span-3 flex flex-col items-center md:items-end">
@@ -147,6 +145,7 @@ import ReportTable from '../../../components/Report/AttendanceTable.vue'
 import ReportTableAmount from '../../../components/Report/AttendanceTable-amount.vue'
 import AttendanceDetail from '../../../components/Report/AttendanceDetail.vue'
 import reportApi from '../../../api/report.js'
+import { ClassRoomService } from '../../../api/class-room.js'
 const tableType = ref('detail')
 
 function toggleTableType() {
@@ -275,6 +274,42 @@ const goToPage = (page) => {
 
 const openDetailModal = (item, attendance = null) => {
     detailModal.value.openModal(item, attendance)
+}
+
+const classRoomService = new ClassRoomService()
+const classrooms = ref([])
+
+const availableGrades = computed(() => {
+    if (!classrooms.value || classrooms.value.length === 0) return []
+    const grades = [...new Set(classrooms.value.map(c => c.grade))]
+    return grades.sort((a, b) => {
+        const numA = parseInt((a || '').replace('ม.', ''))
+        const numB = parseInt((b || '').replace('ม.', ''))
+        return numA - numB
+    })
+})
+
+const availableClassrooms = computed(() => {
+    if (!filters.value.grade || !classrooms.value || classrooms.value.length === 0) return []
+    const filtered = classrooms.value.filter(c => c.grade === filters.value.grade)
+    const classNums = [...new Set(filtered.map(c => c.classroom))]
+    return classNums.sort((a, b) => a - b)
+})
+
+onMounted(async () => {
+    await fetchClassrooms()
+    fetchData()
+})
+
+async function fetchClassrooms() {
+    try {
+        const res = await classRoomService.getClassRooms()
+        if (res.message === 'Success' && res.data) {
+            classrooms.value = res.data
+        }
+    } catch (e) {
+        console.error('Error fetching classrooms:', e)
+    }
 }
 
 onMounted(() => {

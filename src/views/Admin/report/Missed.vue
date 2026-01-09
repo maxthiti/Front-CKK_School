@@ -1,9 +1,20 @@
 <template>
     <div class="p-0 md:p-6 space-y-6">
-        <div class="flex justify-between items-center text-white">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center text-white gap-2">
             <h1 class="text-lg md:text-3xl font-bold">ตารางขาดเรียน/ขาดงาน</h1>
-            <input v-model="filters.date" type="date" @change="fetchData" :max="getDefaultDate()"
-                class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
+            <div class="flex flex-row gap-2 items-stretch md:items-center justify-end md:justify-center">
+                <div class="flex flex-col">
+                    <label class="text-sm font-medium">จาก</label>
+                    <input v-model="filters.start" type="date" :max="filters.end" @change="fetchData"
+                        class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-medium">ถึง</label>
+                    <input v-model="filters.end" type="date" :min="filters.start" :max="getDefaultDate()"
+                        @change="fetchData"
+                        class="text-sm px-2 py-1 bg-white border border-base-300 focus:outline-none focus:ring-2 focus:ring-primary rounded shadow-sm text-base-content" />
+                </div>
+            </div>
         </div>
 
         <div class="bg-base-100 rounded-lg shadow-lg p-4 space-y-3">
@@ -25,7 +36,7 @@
                     <input v-model="filters.search" type="text" placeholder="กรอกชื่อหรือรหัส"
                         class="input input-sm input-bordered w-full" />
                 </div>
-                <div class="form-control">
+                <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
                         <span class="label-text text-sm font-medium">เลือกชั้นปี</span>
                     </label>
@@ -35,7 +46,7 @@
                         <option v-for="grade in allGrades" :key="grade" :value="grade">{{ grade }}</option>
                     </select>
                 </div>
-                <div class="form-control">
+                <div v-if="residentRole !== 'teacher'" class="form-control">
                     <label class="label py-1">
                         <span class="label-text text-sm font-medium">เลือกห้อง</span>
                     </label>
@@ -45,7 +56,8 @@
                         <option v-for="room in allRooms" :key="room" :value="room">{{ room }}</option>
                     </select>
                 </div>
-                <div v-if="residentRole === 'teacher'" class="form-control flex flex-col items-center md:items-end">
+                <div v-if="residentRole === 'teacher'"
+                    class="form-control md:col-start-4 flex flex-col items-center md:items-end md:justify-end md:h-full">
                     <div
                         class="p-1 text-white bg-primary rounded-md text-center min-w-[120px] flex flex-col items-center">
                         <span class="label-text text-sm font-medium mb-1 text-secondary">ชั้นปี / ห้อง</span>
@@ -70,7 +82,7 @@
 
         <div v-else>
             <MissedTable :data="paginatedData" :pagination="paginationData" :role="filters.role"
-                :dateRange="{ start: filters.date, end: filters.date }" :grade="filters.grade"
+                :dateRange="{ start: filters.start, end: filters.end }" :grade="filters.grade"
                 :classroom="filters.classroom" @page-change="goToPage" />
         </div>
     </div>
@@ -95,9 +107,11 @@ const allClassRooms = ref([])
 const allGrades = ref([])
 const allRooms = ref([])
 
+const today = getDefaultDate();
 const filters = ref({
     role: 'student',
-    date: getDefaultDate(),
+    start: today,
+    end: today,
     search: '',
     grade: residentRole === 'teacher' ? teacherGrade : '',
     classroom: residentRole === 'teacher' ? teacherClassroom : ''
@@ -118,19 +132,31 @@ const fetchData = async () => {
     error.value = null
 
     try {
+        let gradeValue = filters.value.grade;
+        if (gradeValue === '' || gradeValue === undefined || gradeValue === null) {
+            gradeValue = '';
+        }
+        let classroomValue = filters.value.classroom;
+        if (classroomValue === '' || classroomValue === undefined || classroomValue === null) {
+            classroomValue = '';
+        }
+        if (filters.value.role === 'teacher' && (!classroomValue || classroomValue === '' || classroomValue === '0')) {
+            classroomValue = 0;
+        }
         let params = {
-            date: filters.value.date,
+            start: filters.value.start,
+            end: filters.value.end,
             role: filters.value.role,
-        }
-        if (residentRole === 'teacher') {
-            params.grade = teacherGrade
-            params.classroom = teacherClassroom
-        }
+            name: filters.value.search || "",
+            department: "",
+            userid: "",
+        };
+        if (gradeValue !== '') params.grade = gradeValue;
+        if (classroomValue !== '' && classroomValue !== undefined) params.classroom = classroomValue;
         const response = await reportApi.getMissedReport(params)
 
         if (response.message === 'Success') {
             missedData.value = response.data || []
-            pagination.value.page = 1
         }
     } catch (err) {
         error.value = 'เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง'
@@ -144,7 +170,10 @@ const handleRoleChange = () => {
     pagination.value.page = 1
     if (filters.value.role === 'teacher') {
         filters.value.grade = ''
-        filters.value.classroom = ''
+        filters.value.classroom = 0
+    } else {
+        filters.value.grade = 'ม.1'
+        filters.value.classroom = '1'
     }
     fetchData()
 }
@@ -157,16 +186,26 @@ const filteredData = computed(() => {
     const grade = filters.value.grade
     const room = filters.value.classroom
 
-    if (grade && room) {
-        base = base.filter(item => String(item.grade) === String(grade) && String(item.classroom) === String(room))
-    } else if (grade) {
-        base = base.filter(item => String(item.grade) === String(grade))
-    } else if (room) {
-        base = base.filter(item => String(item.classroom) === String(room))
+    function normalizeGrade(val) {
+        if (!val) return '';
+        const str = String(val).trim();
+        const match = str.match(/(\d+)/);
+        return match ? match[1] : str;
+    }
+    function normalizeRoom(val) {
+        if (!val) return '';
+        return String(val).trim();
     }
 
-    if (residentRole === 'teacher' && teacherGrade && teacherClassroom) {
-        base = base.filter(item => item.position === 'นักเรียน' && item.grade === teacherGrade && item.classroom == teacherClassroom)
+    if (grade && room) {
+        base = base.filter(item =>
+            normalizeGrade(item.grade) === normalizeGrade(grade) &&
+            normalizeRoom(item.classroom) === normalizeRoom(room)
+        );
+    } else if (grade) {
+        base = base.filter(item => normalizeGrade(item.grade) === normalizeGrade(grade));
+    } else if (room) {
+        base = base.filter(item => normalizeRoom(item.classroom) === normalizeRoom(room));
     }
 
     const term = filters.value.search.trim()
@@ -180,29 +219,35 @@ const filteredData = computed(() => {
 
 const handleGradeChange = () => {
     pagination.value.page = 1
+    fetchData()
 }
 const handleClassroomChange = () => {
     pagination.value.page = 1
+    fetchData()
 }
 
-const totalPages = computed(() => Math.ceil(filteredData.value.length / pagination.value.limit) || 1)
+
 
 const paginatedData = computed(() => {
-    const start = (pagination.value.page - 1) * pagination.value.limit
-    return filteredData.value.slice(start, start + pagination.value.limit)
-})
+    const start = (pagination.value.page - 1) * pagination.value.limit;
+    const end = start + pagination.value.limit;
+    return filteredData.value.slice(start, end);
+});
 
-const paginationData = computed(() => ({
-    page: pagination.value.page,
-    limit: pagination.value.limit,
-    total_items: filteredData.value.length,
-    total_pages: totalPages.value
-}))
+const paginationData = computed(() => {
+    const totalItems = filteredData.value.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pagination.value.limit));
+    return {
+        page: pagination.value.page,
+        limit: pagination.value.limit,
+        total_items: totalItems,
+        total_pages: totalPages
+    };
+});
 
-const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages.value) {
-        pagination.value.page = page
-    }
+function goToPage(page) {
+    if (page < 1 || page > paginationData.value.total_pages) return;
+    pagination.value.page = page;
 }
 
 onMounted(() => {
