@@ -14,8 +14,8 @@
             <table class="table table-zebra w-full">
                 <thead>
                     <tr class="bg-primary text-primary-content">
-                        <th class="text-center">รหัส</th>
-                        <th class="text-center">โปรไฟล์</th>
+                        <th class="text-center w-20 min-w-[60px] max-w-[80px]">รหัส</th>
+                        <th class="text-center w-20 min-w-[60px] max-w-[80px]">โปรไฟล์</th>
                         <th>ชื่อ-สกุล</th>
                         <th class="text-center">ตำแหน่ง</th>
                         <th class="text-center">ชั้นเรียน/แผนก</th>
@@ -34,8 +34,8 @@
                     <template v-for="item in sortedData" :key="item._id">
                         <template v-if="item.late_dates && item.late_dates.length > 0">
                             <tr class="hover" :key="item._id + '-first'">
-                                <td class="text-center">{{ item.userid }}</td>
-                                <td class="text-center">
+                                <td class="text-center w-20 min-w-[60px] max-w-[80px]">{{ item.userid }}</td>
+                                <td class="text-center w-20 min-w-[60px] max-w-[80px]">
                                     <div v-if="item.picture" class="avatar cursor-pointer inline-flex"
                                         @click="viewImage(item.picture, true)">
                                         <div class="w-10 h-10 rounded">
@@ -54,7 +54,7 @@
                                 <td class="text-center">{{ item.position }}</td>
                                 <td class="text-center">
                                     <span v-if="item.position === 'นักเรียน'">{{ item.grade }}/{{ item.classroom
-                                    }}</span>
+                                        }}</span>
                                     <span v-else>-</span>
                                 </td>
                                 <td class="text-center">{{ formatDate(item.late_dates[0].date) }}</td>
@@ -86,7 +86,7 @@
                                                     <div
                                                         class="bg-neutral text-neutral-content w-14 h-14 rounded flex items-center justify-center">
                                                         <span class="text-base font-bold">{{ getInitials(item.name)
-                                                            }}</span>
+                                                        }}</span>
                                                     </div>
                                                 </div>
                                             </template>
@@ -97,8 +97,8 @@
                             </tr>
                             <template v-for="(late, lateIdx) in item.late_dates" :key="item._id + '-late-' + lateIdx">
                                 <tr v-if="lateIdx > 0" class="hover">
-                                    <td class="text-center"></td>
-                                    <td class="text-center"></td>
+                                    <td class="text-center w-20 min-w-[60px] max-w-[80px]"></td>
+                                    <td class="text-center w-20 min-w-[60px] max-w-[80px]"></td>
                                     <td></td>
                                     <td class="text-center"></td>
                                     <td class="text-center"></td>
@@ -130,7 +130,7 @@
                                                         <div
                                                             class="bg-neutral text-neutral-content w-14 h-14 rounded flex items-center justify-center">
                                                             <span class="text-base font-bold">{{ getInitials(item.name)
-                                                            }}</span>
+                                                                }}</span>
                                                         </div>
                                                     </div>
                                                 </template>
@@ -142,8 +142,8 @@
                             </template>
                         </template>
                         <tr v-else class="hover">
-                            <td class="text-center">{{ item.userid }}</td>
-                            <td class="text-center">
+                            <td class="text-center w-20 min-w-[60px] max-w-[80px]">{{ item.userid }}</td>
+                            <td class="text-center w-20 min-w-[60px] max-w-[80px]">
                                 <div v-if="item.picture" class="avatar cursor-pointer inline-flex"
                                     @click="viewImage(item.picture, true)">
                                     <div class="w-10 h-10 rounded">
