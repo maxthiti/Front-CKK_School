@@ -50,6 +50,22 @@ const authStore = useAuthStore()
 const emit = defineEmits(['toggleMobileMenu'])
 
 const pageTitle = computed(() => {
+    const path = route.path
+    if (path.startsWith('/home/teacher') || path.startsWith('/home/student')) {
+        return 'จัดการบุคลากร'
+    }
+    if (path.startsWith('/home/department') || path.startsWith('/home/position') || path.startsWith('/home/classroom') || path.startsWith('/home/holidays')) {
+        return 'จัดการโครงสร้าง'
+    }
+    if (path.startsWith('/home/device') || path.startsWith('/home/model')) {
+        return 'จัดการอุปกรณ์'
+    }
+    if (path.startsWith('/home/report')) {
+        return 'รายงาน'
+    }
+    if (path.startsWith('/home/account')) {
+        return 'จัดการผู้ดูแล'
+    }
     const titles = {
         'Dashboard': 'แดชบอร์ด',
         'Teacher': 'จัดการบุคลากร',

@@ -46,7 +46,7 @@
                                     <template v-if="auth.user?.role !== 'viewer'">
                                         <div @click="$emit('edit', classroom)"
                                             class="mt-2 pt-2 border-t border-primary/20 cursor-pointer hover:bg-primary/10 rounded">
-                                            <div class="text-xs text-base-content/70">ครูประจำชั้น</div>
+                                            <div class="text-xs text-base-content/70">ครูที่ปรึกษา</div>
                                             <div class="text-xs font-semibold text-primary mt-1">
                                                 <template v-if="classroom.adviser && classroom.adviser.name">
                                                     {{ classroom.adviser.name }}<span v-if="classroom.adviser.position">
@@ -62,7 +62,7 @@
                                     </template>
                                     <template v-else>
                                         <div class="mt-2 pt-2 border-t border-primary/20">
-                                            <div class="text-xs text-base-content/70">ครูประจำชั้น</div>
+                                            <div class="text-xs text-base-content/70">ครูที่ปรึกษา</div>
                                             <div class="text-xs font-semibold text-primary mt-1">
                                                 <template v-if="classroom.adviser && classroom.adviser.name">
                                                     {{ classroom.adviser.name }}<span v-if="classroom.adviser.position">
@@ -78,7 +78,7 @@
                                     </template>
                                 </div>
                                 <div v-else class="mt-2 pt-2 border-t border-primary/20 invisible">
-                                    <div class="text-xs text-base-content/70">ครูประจำชั้น</div>
+                                    <div class="text-xs text-base-content/70">ครูที่ปรึกษา</div>
                                     <div class="text-xs font-semibold text-primary mt-1">-</div>
                                 </div>
                             </div>

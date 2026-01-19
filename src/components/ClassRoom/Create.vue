@@ -27,7 +27,7 @@
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">ครูประจำชั้น (คนที่ 1)</span>
+                        <span class="label-text">ครูที่ปรึกษา (คนที่ 1)</span>
                     </label>
                     <div class="relative z-[50]" ref="adviserBoxRef">
                         <input ref="adviserInputRef" v-model="adviserQuery" type="text"
@@ -36,7 +36,7 @@
                         <button v-if="formData.adviser" type="button"
                             class="btn btn-ghost btn-xs absolute right-2 top-2" @click="clearAdviser">ลบ</button>
                         <ul v-if="adviserOpen"
-                            class="bg-base-100 rounded-box shadow border absolute z-[50] bottom-full left-0 mb-2 w-full max-h-[50vh] overflow-y-auto overflow-x-hidden flex flex-col columns-1">
+                            class="bg-base-100 rounded-box shadow border absolute z-[50] bottom-full left-0 mb-2 w-full max-h-[40vh] overflow-y-auto overflow-x-hidden flex flex-col columns-1">
                             <li v-if="!filteredTeachersByAdviserQuery.length" class="px-3 py-2 text-sm opacity-70">
                                 ไม่พบครูที่ตรงกับคำค้นหา
                             </li>
@@ -52,7 +52,7 @@
 
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">ครูประจำชั้น (คนที่ 2)</span>
+                        <span class="label-text">ครูที่ปรึกษา (คนที่ 2)</span>
                     </label>
                     <div class="relative z-[50]" ref="adviser2BoxRef">
                         <input ref="adviser2InputRef" v-model="adviser2Query" type="text"
@@ -127,12 +127,7 @@ const adviser2InputRef = ref(null)
 const emit = defineEmits(['success'])
 
 const filteredTeachers = computed(() => {
-    const allowedPositions = [
-        'หัวหน้ากลุ่มสาระการเรียนรู้',
-        'รองหัวหน้ากลุ่มสาระการเรียนรู้',
-        'ครู'
-    ]
-    return props.teachers.filter(t => allowedPositions.includes(t.position))
+    return props.teachers
 })
 
 const filteredTeachersByAdviserQuery = computed(() => {
@@ -255,11 +250,33 @@ const closeModal = () => {
 
 const handleSubmit = async () => {
     if (!formData.value.adviser && !formData.value.adviser2) {
-        alert('กรุณาเลือกครูประจำชั้นอย่างน้อย 1 คน')
+        closeModal()
+        setTimeout(async () => {
+            const { default: Swal } = await import('sweetalert2')
+            Swal.fire({
+                icon: 'warning',
+                title: 'กรุณาเลือกครูที่ปรึกษาอย่างน้อย 1 คน',
+                confirmButtonColor: '#2563eb',
+                didOpen: () => {
+                    document.getElementById('app').removeAttribute('aria-hidden')
+                }
+            })
+        }, 200)
         return
     }
     if (formData.value.adviser && formData.value.adviser2 && formData.value.adviser === formData.value.adviser2) {
-        alert('ไม่สามารถเลือกครูคนเดียวกันซ้ำได้')
+        closeModal()
+        setTimeout(async () => {
+            const { default: Swal } = await import('sweetalert2')
+            Swal.fire({
+                icon: 'warning',
+                title: 'ไม่สามารถเลือกครูคนเดียวกันซ้ำได้',
+                confirmButtonColor: '#2563eb',
+                didOpen: () => {
+                    document.getElementById('app').removeAttribute('aria-hidden')
+                }
+            })
+        }, 200)
         return
     }
     emit('success', formData.value)

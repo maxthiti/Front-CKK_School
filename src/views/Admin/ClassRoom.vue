@@ -114,7 +114,7 @@ const handleCreateSuccess = async (formData) => {
             const { default: Swal } = await import('sweetalert2')
             Swal.fire({
                 icon: 'warning',
-                title: 'กรุณาเลือกครูประจำชั้น',
+                title: 'กรุณาเลือกครูที่ปรึกษาอย่างน้อย 1 คน',
                 confirmButtonColor: '#2563eb',
                 didOpen: () => {
                     document.getElementById('app').removeAttribute('aria-hidden')
@@ -199,11 +199,7 @@ const fetchTeachers = async () => {
     try {
         const response = await teacherService.getTeachers()
         if (response.message === 'Success' && response.data) {
-            teachers.value = response.data.filter(t => [
-                'หัวหน้ากลุ่มสาระการเรียนรู้',
-                'รองหัวหน้ากลุ่มสาระการเรียนรู้',
-                'ครู'
-            ].includes(t.position))
+            teachers.value = response.data
         }
     } catch (error) {
         console.error('Fetch teachers error:', error)
