@@ -44,6 +44,7 @@
                         class="select select-bordered select-sm w-full">
                         <option value="all">ทั้งหมด</option>
                         <option value="fail">ไม่สำเร็จ</option>
+                        <option value="notlinked">ไม่ได้เชื่อมต่อ</option>
                     </select>
                 </div>
 
@@ -199,6 +200,9 @@ const fetchData = async () => {
         } else if (params.role === 'teacher') {
             params.grade = '';
             params.classroom = '0';
+        }
+        if (params.status === 'notlinked') {
+            params.status = 'notlinked';
         }
         const response = await ModelingService.getModelings(params);
 

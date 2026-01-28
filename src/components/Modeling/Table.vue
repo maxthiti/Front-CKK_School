@@ -54,7 +54,11 @@
                         </span>
                     </td>
                     <td>
-                        <div class="flex items-center justify-center gap-2">
+                        <div v-if="!item.modeling || item.modeling.length === 0 || !item.modeling[0].device || Object.keys(item.modeling[0].device).length === 0"
+                            class="text-center text-base-content/60">
+                            ยังไม่ได้เชื่อมต่ออุปกรณ์
+                        </div>
+                        <div v-else class="flex items-center justify-center gap-2">
                             <div v-for="(model, idx) in item.modeling" :key="idx" class="tooltip tooltip-top"
                                 :data-tip="`${model.device.location} - ${statusLabel(model.status)}`">
                                 <div :class="[
@@ -137,7 +141,11 @@
 
             <div>
                 <span class="text-sm text-base-content/60 block mb-2">สถานะการเชื่อมต่อ:</span>
-                <div class="flex flex-wrap gap-2">
+                <div v-if="!item.modeling || item.modeling.length === 0 || !item.modeling[0].device || Object.keys(item.modeling[0].device).length === 0"
+                    class="text-center text-base-content/60">
+                    ยังไม่ได้เชื่อมต่ออุปกรณ์
+                </div>
+                <div v-else class="flex flex-wrap gap-2">
                     <div v-for="(model, idx) in item.modeling" :key="idx" class="tooltip tooltip-top"
                         :data-tip="`${model.device.location} - ${statusLabel(model.status)}`">
                         <div :class="[
