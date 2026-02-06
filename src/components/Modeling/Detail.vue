@@ -70,7 +70,12 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(model, idx) in item.modeling" :key="idx">
+                                <tr
+                                    v-if="!item.modeling || item.modeling.length === 0 || !item.modeling[0].device || Object.keys(item.modeling[0].device).length === 0">
+                                    <td colspan="4" class="text-center text-base-content/60 py-8">
+                                        ยังไม่ได้เชื่อมต่ออุปกรณ์</td>
+                                </tr>
+                                <tr v-for="(model, idx) in item.modeling" :key="idx" v-else>
                                     <td class="text-center">{{ idx + 1 }}</td>
                                     <td>{{ model.device.location }}</td>
                                     <td class="text-center">

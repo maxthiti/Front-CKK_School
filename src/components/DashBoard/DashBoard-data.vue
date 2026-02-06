@@ -15,7 +15,7 @@
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
                 <h3 class="font-bold text-lg mb-4">รายการเข้าเรียน{{ attendanceRole === 'teacher' ? 'ครู' : 'นักเรียน'
-                }} วันที่ {{ displayDate }}</h3>
+                    }} วันที่ {{ displayDate }}</h3>
                 <div v-if="attendanceRole === 'student'">
                     <Attendance :role="'student'" :date="selectedDate" v-if="residentRole !== 'teacher'" />
                     <Attendance :role="'student'" :date="selectedDate" v-else :fixed-grade="localGrade"
@@ -55,19 +55,17 @@
                     <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </form>
                 <h3 class="font-bold text-lg mb-4">รายการที่ไม่ได้สแกน{{ missedRole === 'teacher' ? 'ครู' : 'นักเรียน'
-                }} วันที่
+                    }} วันที่
                     {{ displayDate }}</h3>
 
                 <MissedTable :data="missedData" :pagination="missedPagination" :hide-export="true"
                     :dateRange="{ start: (selectedDate.value || '').toString(), end: (selectedDate.value || '').toString() }"
-                    @page-change="handleMissedPageChange" summaryTextColor="text-black" />
+                    :role="missedRole" @page-change="handleMissedPageChange" summaryTextColor="text-black" />
             </div>
             <form method="dialog" class="modal-backdrop">
                 <button>close</button>
             </form>
         </dialog>
-
-        <AttendanceDetail ref="detailModal" />
 
         <div v-if="auth.user?.role !== 'teacher'" class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <transition name="slide-fade">
@@ -232,8 +230,8 @@
                 </div>
             </transition>
         </div>
+        <!-- <AttendanceDetail ref="detailModal" /> -->
     </div>
-
 </template>
 
 <script setup>
@@ -325,6 +323,7 @@ const missedPagination = computed(() => ({
     total_items: missedTotalItems.value,
     total_pages: missedTotalPages.value
 }))
+
 
 const availableGrades = computed(() => {
     if (!classrooms.value || classrooms.value.length === 0) return []
@@ -834,9 +833,7 @@ onMounted(() => {
     opacity: 0;
     transform: translateX(60px);
 }
-</style>
 
-<style scoped>
 .student-bg {
     background-color: #e3f0ff !important;
 }

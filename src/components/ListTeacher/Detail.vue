@@ -1,5 +1,5 @@
 <template>
-    <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div v-if="visible" class="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-40">
         <div class="bg-base-100 rounded-lg shadow-lg w-full max-w-2xl p-6 relative m-4">
             <button class="absolute top-2 right-2 btn btn-sm btn-circle btn-ghost" @click="$emit('close')">
                 ✕
@@ -7,7 +7,7 @@
             <div class="flex items-center gap-4 mb-4">
                 <div class="avatar">
                     <div class="w-16 h-16 rounded-full">
-                        <img v-if="teacher.picture" :src="teacher.picture" :alt="teacher.name"
+                        <img v-if="teacher.picture" :src="getPictureUrl(teacher.picture)" :alt="teacher.name"
                             class="w-full h-full object-cover" />
                         <div v-else
                             class="w-full h-full bg-primary text-primary-content flex items-center justify-center">
@@ -17,7 +17,7 @@
                 </div>
                 <div>
                     <div class="font-bold text-lg">{{ teacher.name }}</div>
-                    <div class="text-sm text-base-content/70">รหัส: {{ teacher.code }}</div>
+                    <div class="text-sm text-base-content/70">รหัส: {{ teacherCode }}</div>
                     <div class="text-sm">แผนก: {{ teacher.department }} | ตำแหน่ง: {{ teacher.position }}</div>
                 </div>
             </div>
@@ -90,6 +90,8 @@ const yearOptions = computed(() => {
     return [current - 1, current, current + 1]
 })
 
+const teacherCode = computed(() => props.teacher.code || props.teacher.userid || props.teacher.id || '-')
+
 const attendances = ref([])
 const holidays = ref([])
 const loading = ref(false)
@@ -115,6 +117,12 @@ const calendar = computed(() => {
     }
     return weeks
 })
+
+const getPictureUrl = (pic) => {
+    if (!pic) return ''
+    if (pic.startsWith('http://') || pic.startsWith('https://')) return pic
+    return `${import.meta.env.VITE_IMG_PROFILE_URL || ''}${pic}`
+}
 
 const getInitials = (name) => {
     if (!name) return '?'

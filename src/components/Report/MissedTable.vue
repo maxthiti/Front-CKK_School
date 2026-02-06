@@ -1,6 +1,6 @@
 <template>
     <div class="flex justify-end mb-2 gap-2">
-        <button v-if="role === 'teacher'" class="btn btn-sm btn-primary" :disabled="loadingExportDoc"
+        <button v-if="role === 'teacher' && !hideExport" class="btn btn-sm btn-primary" :disabled="loadingExportDoc"
             @click="exportDocxLeaveReport">
             เอกสารสรุปการออกงาน
         </button>
@@ -24,6 +24,7 @@
                     <th class="text-center">ตำแหน่ง</th>
                     <th class="text-center">ชั้นเรียน/แผนก</th>
                     <th class="text-center">วันที่ขาด</th>
+                    <th class="text-center">จัดการ</th>
                 </tr>
             </thead>
             <tbody>
@@ -51,6 +52,17 @@
                             <span v-else>{{ group[0].department || '-' }}</span>
                         </td>
                         <td class="text-center">{{ formatDate(group[0].missed_date) }}</td>
+                        <td class="text-center">
+                            <button class="btn btn-xs btn-outline btn-info" @click="openDetail(group[0])">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
+                        </td>
                     </tr>
                     <tr v-for="item in group.slice(1)" :key="item._id + '-' + item.missed_date" class="hover">
                         <td class="text-center"></td>
@@ -59,6 +71,7 @@
                         <td></td>
                         <td></td>
                         <td class="text-center">{{ formatDate(item.missed_date) }}</td>
+                        <td></td>
                     </tr>
                 </template>
             </tbody>
@@ -105,6 +118,18 @@
                     </div>
                 </div>
             </div>
+
+            <div class="flex justify-end mt-2">
+                <button class="btn btn-xs btn-outline btn-info" @click="openDetail(group[0])">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -146,6 +171,8 @@
             <button>close</button>
         </form>
     </dialog>
+    <MissedTableDetail v-if="selectedStudent" ref="detailRef" :student="selectedStudent" :role="role"
+        @close="showDetail = false" />
 </template>
 
 <script setup>
@@ -154,6 +181,7 @@ import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, Align
 import { saveAs } from 'file-saver'
 import reportApi from '../../api/report.js'
 import ExcelJS from 'exceljs'
+import MissedTableDetail from './MissedTableDetail.vue'
 
 const loadingExportDoc = ref(false)
 const loadingExport = ref(false)
@@ -193,6 +221,10 @@ const props = defineProps({
     summaryTextColor: {
         type: String,
         default: 'text-white'
+    },
+    disableLocalDetail: {
+        type: Boolean,
+        default: false
     }
 })
 
@@ -220,6 +252,23 @@ const flattenedData = computed(() => {
     return arr;
 });
 
+const selectedStudent = ref(null)
+const showDetail = ref(false)
+import { getCurrentInstance } from 'vue'
+const detailRef = ref(null)
+function openDetail(student) {
+    const instance = getCurrentInstance()
+    const hasParentHandler = !!(instance?.vnode.props && (
+        instance.vnode.props['onShow-detail'] || instance.vnode.props['onShowDetail']
+    ))
+    emit('show-detail', { student, role: props.role })
+    if (!hasParentHandler && !props.disableLocalDetail) {
+        selectedStudent.value = student
+        showDetail.value = true
+        detailRef.value?.openModal(student, props.role)
+    }
+}
+
 function formatDate(dateStr) {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
@@ -230,7 +279,7 @@ function formatDate(dateStr) {
     });
 }
 
-const emit = defineEmits(['page-change'])
+const emit = defineEmits(['page-change', 'show-detail'])
 
 const imgProBaseUrl = import.meta.env.VITE_IMG_PROFILE_URL
 
@@ -408,7 +457,6 @@ async function exportDocxLeaveReport() {
             if (res.ok) pictureBuffer = await res.arrayBuffer();
         } catch (e) { pictureBuffer = null; }
 
-        // ใช้แค่วันที่เริ่มต้น (start) เท่านั้น
         const [stats, missed] = await Promise.all([
             reportApi.getDailyStats(props.dateRange.start, props.dateRange.start),
             reportApi.getMissedReport({ start: props.dateRange.start, end: props.dateRange.start, role: 'teacher', classroom: 0 }),

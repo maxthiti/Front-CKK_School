@@ -1,5 +1,5 @@
 <template>
-    <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div v-if="visible" class="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-40">
         <div class="bg-base-100 rounded-lg shadow-lg w-full max-w-2xl p-6 relative m-4">
             <button class="absolute top-2 right-2 btn btn-sm btn-circle btn-ghost" @click="$emit('close')">
                 ✕
@@ -7,7 +7,7 @@
             <div class="flex items-center gap-4 mb-4">
                 <div class="avatar">
                     <div class="w-16 h-16 rounded-full">
-                        <img v-if="student.picture" :src="student.picture" :alt="student.name"
+                        <img v-if="student.picture" :src="getPictureUrl(student.picture)" :alt="student.name"
                             class="w-full h-full object-cover" />
                         <div v-else
                             class="w-full h-full bg-secondary text-secondary-content flex items-center justify-center">
@@ -17,8 +17,8 @@
                 </div>
                 <div>
                     <div class="font-bold text-lg">{{ student.name }}</div>
-                    <div class="text-sm text-base-content/70">รหัส: {{ student.code }}</div>
-                    <div class="text-sm">ระดับชั้น: {{ student.grade }} ห้อง {{ student.room }}</div>
+                    <div class="text-sm text-base-content/70">รหัส: {{ studentCode }}</div>
+                    <div class="text-sm">ระดับชั้น: {{ student.grade }} ห้อง {{ studentRoom }}</div>
                 </div>
             </div>
             <div class="mb-2 font-semibold flex items-center gap-2">
@@ -88,6 +88,9 @@ const yearOptions = computed(() => {
     return [current - 1, current, current + 1]
 })
 
+const studentCode = computed(() => props.student.code || props.student.userid || props.student.id || '-')
+const studentRoom = computed(() => props.student.room || props.student.classroom || '-')
+
 const attendances = ref([])
 const holidays = ref([])
 const loading = ref(false)
@@ -136,6 +139,12 @@ const getAttendanceMap = computed(() => {
     })
     return map
 })
+
+const getPictureUrl = (pic) => {
+    if (!pic) return ''
+    if (pic.startsWith('http://') || pic.startsWith('https://')) return pic
+    return `${import.meta.env.VITE_IMG_PROFILE_URL || ''}${pic}`
+}
 
 const getDayClass = (dateObj) => {
     if (!dateObj) return ''
