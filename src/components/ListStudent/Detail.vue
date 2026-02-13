@@ -201,7 +201,17 @@ function getHolidayTitle(dateObj) {
     return holiday ? holiday.summary : ''
 }
 
-watch([selectedMonth, selectedYear, () => props.visible], ([m, y, vis]) => {
+
+watch([
+    () => props.student,
+    selectedMonth,
+    selectedYear,
+    () => props.visible
+], ([student, m, y, vis], [oldStudent]) => {
+    if (student !== oldStudent) {
+        selectedMonth.value = today.getMonth()
+        selectedYear.value = today.getFullYear()
+    }
     if (vis) fetchAttendance()
 })
 
