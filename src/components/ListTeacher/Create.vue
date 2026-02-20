@@ -49,9 +49,11 @@
                         <label class="label">
                             <span class="label-text">รหัสบุคลากร</span>
                         </label>
-                        <input v-model="formData.userid" type="text" class="input input-bordered w-full" required />
+                        <input v-model="formData.userid" type="text"
+                            :class="['input input-bordered w-full', useridError ? 'border-error focus:border-error' : '']"
+                            required />
+                        <div v-if="useridError" class="text-sm text-error mt-1">{{ useridError }}</div>
                     </div>
-
                     <div class="form-control w-full">
                         <label class="label">
                             <span class="label-text">คำนำหน้า</span>
@@ -160,6 +162,7 @@ const loading = ref(false)
 const previewImage = ref('')
 const fileName = ref('')
 const fileError = ref('')
+const useridError = ref('')
 
 const positionQuery = ref('')
 const positionOpen = ref(false)
@@ -278,6 +281,7 @@ const openModal = () => {
     previewImage.value = ''
     fileName.value = ''
     fileError.value = ''
+    useridError.value = ''
     positionQuery.value = ''
     departmentQuery.value = ''
     positionOpen.value = false
@@ -300,6 +304,7 @@ const closeModal = () => {
     previewImage.value = ''
     fileName.value = ''
     fileError.value = ''
+    useridError.value = ''
     positionQuery.value = ''
     departmentQuery.value = ''
     positionOpen.value = false
@@ -390,8 +395,33 @@ const removeImage = () => {
 }
 
 const handleSubmit = async () => {
-    emit('success', formData.value)
-    closeModal()
+    useridError.value = ''
+    loading.value = true
+    emit('success', {
+        ...formData.value,
+        onError: async (err) => {
+            const errStr = String(err).replace(/\s+/g, '').toLowerCase();
+            if (errStr.includes('duplicateteacheruserid')) {
+                useridError.value = 'มีรหัสนี้แล้ว กรุณาใช้รหัสอื่น'
+            } else {
+                closeModal();
+                const { default: Swal } = await import('sweetalert2');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถเพิ่มบุคลากรได้',
+                    confirmButtonColor: '#2563eb',
+                    didOpen: () => {
+                        document.getElementById('app')?.removeAttribute('aria-hidden')
+                    }
+                });
+            }
+            loading.value = false
+        },
+        onSuccess: () => {
+            closeModal()
+        }
+    })
 }
 
 defineExpose({

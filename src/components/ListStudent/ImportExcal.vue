@@ -28,7 +28,7 @@
                     <input type="file" accept="image/*" multiple @change="onImagesChange"
                         class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
                     <p v-if="imageFiles.length" class="text-xs text-success mt-1">รูปภาพที่เลือก: {{ imageFiles.length
-                    }} ไฟล์</p>
+                        }} ไฟล์</p>
                     <p class="text-xs text-gray-500 mt-1">กรุณาตั้งชื่อไฟล์รูปภาพเป็นรหัสนักเรียน เช่น <b>6200.jpg</b>
                         เพื่อให้ระบบแมปข้อมูลอัตโนมัติ</p>
                 </div>
@@ -273,28 +273,51 @@ async function handleImport() {
 
         const importedStudents = [];
         for (const student of previewData.value) {
-            const formData = {
-                userid: student.userid,
-                pre_name: student.pre_name,
-                first_name: student.first_name,
-                last_name: student.last_name,
-                grade: student.grade,
-                classroom: student.classroom,
-                picture: imageMap[student.userid] || null
-            };
+            let existing = null;
             try {
-                const response = await studentService.createStudent(formData);
-                if (response.message === 'Success') {
-                    importedStudents.push(response.data);
+                existing = await studentService.getStudentByUseridRaw(student.userid);
+            } catch (e) {
+                existing = null;
+            }
+
+            let formData = {};
+            if (existing && existing.message === 'Success' && existing.data && existing.data._id) {
+                const oldData = existing.data;
+                formData = {
+                    ...oldData,
+                    userid: student.userid,
+                };
+                if (student.pre_name) formData.pre_name = student.pre_name;
+                if (student.first_name) formData.first_name = student.first_name;
+                if (student.last_name) formData.last_name = student.last_name;
+                if (student.grade) formData.grade = student.grade;
+                if (student.classroom) formData.classroom = student.classroom;
+                if (imageMap[student.userid]) formData.picture = imageMap[student.userid];
+                try {
+                    const response = await studentService.updateStudent(oldData._id, formData);
+                    if (response.message === 'Success') {
+                        importedStudents.push(response.data);
+                    }
+                } catch (err) {
+                    console.error(`Error updating student ${student.userid}:`, err);
                 }
-            } catch (err) {
-                const apiError = err?.response?.data;
-                if (apiError?.message === 'Duplicate data' && apiError?.error?.includes('duplicate teacher userid')) {
-                    const duplicateId = student.userid;
-                    Swal.fire('ข้อผิดพลาด', `รหัส ${duplicateId} มีคนใช้งานแล้ว กรุณาตรวจสอบข้อมูลในไฟล์ Excel`, 'error');
-                    break;
-                } else {
-                    console.error(`Error importing student ${student.userid}:`, err);
+            } else {
+                formData = {
+                    userid: student.userid,
+                    pre_name: student.pre_name,
+                    first_name: student.first_name,
+                    last_name: student.last_name,
+                    grade: student.grade,
+                    classroom: student.classroom,
+                    picture: imageMap[student.userid] || null
+                };
+                try {
+                    const response = await studentService.createStudent(formData);
+                    if (response.message === 'Success') {
+                        importedStudents.push(response.data);
+                    }
+                } catch (err) {
+                    console.error(`Error creating student ${student.userid}:`, err);
                 }
             }
         }

@@ -49,7 +49,11 @@
                         <label class="label">
                             <span class="label-text">รหัสนักเรียน</span>
                         </label>
-                        <input v-model="formData.userid" type="text" class="input input-bordered w-full" required />
+                        <input v-model="formData.userid" type="text" class="input input-bordered w-full" required
+                            @input="validateUserId" :class="{ 'input-error': useridError }" autocomplete="off" />
+                        <label v-if="useridError" class="label">
+                            <span class="label-text-alt text-error">{{ useridError }}</span>
+                        </label>
                     </div>
 
                     <div class="form-control w-full">
@@ -157,6 +161,8 @@ const formData = ref({
     picture: null
 })
 
+const useridError = ref('')
+
 const props = defineProps({
     classrooms: {
         type: Array,
@@ -262,6 +268,7 @@ const openModal = (fixed = null) => {
     }
     previewImage.value = ''
     fileError.value = ''
+    useridError.value = ''
     firstNameError.value = ''
     lastNameError.value = ''
     modalRef.value.showModal()
@@ -280,6 +287,7 @@ const closeModal = () => {
     }
     previewImage.value = ''
     fileError.value = ''
+    useridError.value = ''
     firstNameError.value = ''
     lastNameError.value = ''
 }
@@ -391,8 +399,30 @@ const handleSubmit = async () => {
         return
     }
 
-    emit('success', formData.value)
-    closeModal()
+    emit('success', {
+        ...formData.value,
+        onError: async (err) => {
+            const errStr = String(err).replace(/\s+/g, '').toLowerCase();
+            if (errStr.includes('duplicatestudentuserid')) {
+                useridError.value = 'มีรหัสนี้แล้ว กรุณาใช้รหัสอื่น'
+            } else {
+                closeModal();
+                const { default: Swal } = await import('sweetalert2');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถเพิ่มนักเรียนได้',
+                    confirmButtonColor: '#2563eb',
+                    didOpen: () => {
+                        document.getElementById('app')?.removeAttribute('aria-hidden')
+                    }
+                });
+            }
+        },
+        onSuccess: () => {
+            closeModal()
+        }
+    })
 }
 
 defineExpose({

@@ -23,7 +23,11 @@
                         <label class="label">
                             <span class="label-text">รหัสบุคลากร</span>
                         </label>
-                        <input v-model="formData.userid" type="text" class="input input-bordered w-full" required />
+                        <input v-model="formData.userid" type="text" class="input input-bordered w-full" required
+                            :class="{ 'input-error': useridError }" autocomplete="off" />
+                        <label v-if="useridError" class="label">
+                            <span class="label-text-alt text-error">{{ useridError }}</span>
+                        </label>
                     </div>
 
                     <div class="form-control w-full">
@@ -137,6 +141,7 @@ const fileError = ref('')
 const fileInputRef = ref(null)
 const firstNameError = ref('')
 const lastNameError = ref('')
+const useridError = ref('')
 const formData = ref({
     userid: '',
     pre_name: '',
@@ -178,6 +183,7 @@ const openModal = async (teacher) => {
         status: 'ปกติ',
         picture: null
     }
+    useridError.value = ''
 
     if (teacher.picture) {
         try {
@@ -222,6 +228,7 @@ const closeModal = () => {
         status: '',
         picture: null
     }
+    useridError.value = ''
 }
 
 
@@ -339,6 +346,7 @@ const removeNewImage = () => {
 const handleSubmit = async () => {
     validateFirstName()
     validateLastName()
+    useridError.value = ''
     if (!isFormValid.value) {
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
@@ -371,7 +379,13 @@ const handleSubmit = async () => {
             closeModal()
         }
     } catch (error) {
+        const duplicate = error?.response?.status === 409 || (error?.response?.data?.error && error.response.data.error.includes('duplicate teacher userid'));
+        if (duplicate) {
+            useridError.value = 'มีรหัสนี้แล้ว กรุณาใช้รหัสอื่น';
+            return;
+        }
         console.error('Update teacher error:', error)
+        closeModal();
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'error',

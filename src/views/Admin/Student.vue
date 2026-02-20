@@ -1,5 +1,5 @@
 <template>
-    <div class="space-y-6">
+    <div class="space-y-6 max-[570px]:pt-14">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h2 class="text-xl sm:text-2xl font-bold text-white">จัดการนักเรียน</h2>
             <div v-if="auth.user?.role !== 'viewer'" class="flex flex-wrap gap-2 w-full sm:w-auto">
@@ -346,6 +346,8 @@ const openCreateModal = () => {
 
 const handleCreateSuccess = async (formData) => {
     loading.value = true
+    const onError = formData.onError
+    const onSuccess = formData.onSuccess
     try {
         const response = await studentService.createStudent(formData)
         if (response.message === 'Success') {
@@ -361,9 +363,16 @@ const handleCreateSuccess = async (formData) => {
                 }
             })
             fetchStudents()
+            if (onSuccess) onSuccess()
         }
     } catch (error) {
-        console.error('Create student error:', error)
+         if (
+            error?.response?.status === 409 ||
+            (error?.response?.data?.error && error.response.data.error.includes('duplicate student userid'))
+        ) {
+            if (onError) onError(error?.response?.data?.error || 'duplicate student userid')
+            return
+        }
         const { default: Swal } = await import('sweetalert2')
         Swal.fire({
             icon: 'error',
@@ -374,6 +383,7 @@ const handleCreateSuccess = async (formData) => {
                 document.getElementById('app')?.removeAttribute('aria-hidden')
             }
         })
+        if (onError) onError('other')
     } finally {
         loading.value = false
     }

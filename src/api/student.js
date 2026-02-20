@@ -134,4 +134,41 @@ export class StudentService {
       throw error;
     }
   }
+
+  async getStudentById(userid) {
+    try {
+      const config = {
+        method: "get",
+        maxBodyLength: Infinity,
+        url: `${this.baseUrl}users/student/${userid}`,
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+      };
+      const response = await axios.request(config);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getStudentByUseridRaw(userid) {
+    try {
+      const config = {
+        method: "get",
+        maxBodyLength: Infinity,
+        url: `${this.baseUrl}users/student/userid/${userid}`,
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+      };
+      const response = await axios.request(config);
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  }
 }
