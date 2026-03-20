@@ -18,6 +18,9 @@ const MissedReport = () => import("../views/Admin/report/Missed.vue");
 const StrangerReport = () => import("../views/Admin/report/Stranger.vue");
 const StatsView = () => import("../views/Admin/report/StatsView.vue");
 const Holidays = () => import("../views/Admin/Holidays.vue");
+const Behavior = () => import("../views/Admin/Behavior.vue");
+const Conduct = () => import("../views/Admin/Conduct.vue");
+const AtRisk = () => import("../views/Admin/report/AtRisk.vue");
 
 const routes = [
   { path: "/", name: "login", component: Login },
@@ -106,6 +109,21 @@ const routes = [
         path: "holidays",
         name: "Holidays",
         component: Holidays,
+      },
+      {
+        path: "behavior",
+        name: "Behavior",
+        component: Behavior,
+      },
+      {
+        path: "conduct",
+        name: "Conduct",
+        component: Conduct,
+      },
+      {
+        path: "report/at-risk",
+        name: "AtRisk",
+        component: AtRisk,
       },
     ],
   },

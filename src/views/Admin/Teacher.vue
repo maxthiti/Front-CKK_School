@@ -82,7 +82,7 @@
         <div v-if="totalPages > 1" class="flex justify-center">
             <div class="join">
                 <button class="join-item btn btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
-                    «
+                    ‹
                 </button>
                 <button v-for="page in displayedPages" :key="page" class="join-item btn btn-sm"
                     :class="{ 'btn-active': page === currentPage }" @click="goToPage(page)">
@@ -90,7 +90,7 @@
                 </button>
                 <button class="join-item btn btn-sm" @click="goToPage(currentPage + 1)"
                     :disabled="currentPage === totalPages">
-                    »
+                    ›
                 </button>
             </div>
         </div>

@@ -171,4 +171,24 @@ export class StudentService {
       throw error;
     }
   }
+
+  async searchStudent({ name, userid }) {
+    try {
+      const params = new URLSearchParams();
+      params.append("name", name ?? "");
+      params.append("userid", userid ?? "");
+      const config = {
+        method: "get",
+        url: `${this.baseUrl}users/student/search?${params.toString()}`,
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+      };
+      const response = await axios.request(config);
+      return response.data;
+    } catch (error) {
+      console.error("Search student error:", error);
+      throw error;
+    }
+  }
 }

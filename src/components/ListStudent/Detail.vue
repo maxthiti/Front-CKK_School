@@ -19,6 +19,16 @@
                     <div class="font-bold text-lg">{{ student.name }}</div>
                     <div class="text-sm text-base-content/70">รหัส: {{ studentCode }}</div>
                     <div class="text-sm">ระดับชั้น: {{ student.grade }} ห้อง {{ studentRoom }}</div>
+                    <div class="mt-1">
+                        <button v-if="canOpenConduct" type="button" class="badge badge-sm font-semibold cursor-pointer"
+                            :class="getScoreBadgeClass(studentScore)" @click="goToConduct"
+                            title="ไปหน้าบันทึกพฤติกรรมของนักเรียนคนนี้">
+                            คะแนน {{ studentScore }}
+                        </button>
+                        <span v-else class="badge badge-sm font-semibold" :class="getScoreBadgeClass(studentScore)">
+                            คะแนน {{ studentScore }}
+                        </span>
+                    </div>
                 </div>
             </div>
             <div class="mb-2 font-semibold flex items-center gap-2">
@@ -79,14 +89,19 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../../stores/auth'
 import reportApi from '../../api/report'
 import holidaysApi from '../../api/holidays'
 import AttendanceInfo from '../AttendanceInfo.vue'
 
+const emit = defineEmits(['close'])
 const props = defineProps({
     student: { type: Object, required: true },
     visible: { type: Boolean, default: false },
 })
+const router = useRouter()
+const auth = useAuthStore()
 const today = new Date()
 const monthsTH = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม']
 const daysShort = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส']
@@ -100,6 +115,11 @@ const yearOptions = computed(() => {
 
 const studentCode = computed(() => props.student.code || props.student.userid || props.student.id || '-')
 const studentRoom = computed(() => props.student.room || props.student.classroom || '-')
+const studentScore = computed(() => {
+    const value = Number(props.student?.score)
+    return Number.isFinite(value) ? value : 100
+})
+const canOpenConduct = computed(() => auth.user?.role !== 'viewer')
 
 const attendances = ref([])
 const holidays = ref([])
@@ -174,6 +194,31 @@ const getPictureUrl = (pic) => {
     if (!pic) return ''
     if (pic.startsWith('http://') || pic.startsWith('https://')) return pic
     return `${import.meta.env.VITE_IMG_PROFILE_URL || ''}${pic}`
+}
+
+const goToConduct = () => {
+    if (!canOpenConduct.value) return
+    const studentId = props.student?.id || props.student?._id
+    if (!studentId) return
+    emit('close')
+    router.push({
+        name: 'Conduct',
+        query: {
+            studentId: String(studentId),
+        },
+    })
+}
+
+const getScoreBadgeClass = (score) => {
+    const value = Number(score)
+    if (Number.isNaN(value)) return 'badge-ghost'
+    if (value >= 101) return 'bg-gradient-to-r from-blue-800 to-emerald-500 text-white border-transparent'
+    if (value >= 81) return 'bg-green-600 text-white border-green-700'
+    if (value >= 61) return 'bg-lime-300 text-lime-900 border-lime-400'
+    if (value >= 41) return 'bg-yellow-300 text-yellow-900 border-yellow-400'
+    if (value >= 21) return 'bg-orange-400 text-white border-orange-500'
+    if (value >= 1) return 'bg-red-500 text-white border-red-600'
+    return 'bg-black text-white border-black'
 }
 
 const getDayClass = (dateObj) => {
