@@ -17,8 +17,10 @@
             </div>
         </div>
 
+        <TermSummary :year="selectedYear" :refresh-key="refreshKey" :selected-term-key="selectedTermKey" />
+
         <AcademicCalendarTable :year="selectedYear" :refresh-key="refreshKey" @edit="handleEdit"
-            @delete="openDeleteModal" />
+            @delete="openDeleteModal" @select-term="handleSelectTerm" />
 
         <CreateModal :is-open="isCreateModalOpen" :year="selectedYear" @close="closeCreateModal"
             @success="handleCreateSuccess" />
@@ -35,6 +37,7 @@
 import { ref } from 'vue'
 import Swal from 'sweetalert2'
 import AcademicCalendarTable from '../../components/Academiccalendar/Table.vue'
+import TermSummary from '../../components/Academiccalendar/TermSummary.vue'
 import CreateModal from '../../components/Academiccalendar/Create.vue'
 import UpdateModal from '../../components/Academiccalendar/Update.vue'
 import DeleteModal from '../../components/Academiccalendar/Delete.vue'
@@ -46,6 +49,7 @@ const isCreateModalOpen = ref(false)
 const isUpdateModalOpen = ref(false)
 const isDeleteModalOpen = ref(false)
 const selectedTerms = ref([])
+const selectedTermKey = ref('term1')
 
 const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i)
 
@@ -140,5 +144,9 @@ const handleDeleteSuccess = () => {
 
 const handleRefresh = () => {
     refreshKey.value += 1
+}
+
+const handleSelectTerm = (termKey) => {
+    selectedTermKey.value = termKey === 'term2' ? 'term2' : 'term1'
 }
 </script>
