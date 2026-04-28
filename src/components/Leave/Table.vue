@@ -1,17 +1,11 @@
 <template>
-	<div class="w-full">
-		<!-- <div class="flex items-center justify-between mb-4">
-			<h3 class="text-lg font-bold">รายการลา</h3>
-			<button type="button" class="btn btn-sm" :disabled="loading" @click="loadLeaveTypes">
-				รีเฟรช
-			</button>
-		</div> -->
+	<div class="w-full rounded-lg">
 
 		<div v-if="loading" class="flex justify-center py-8">
 			<span class="loading loading-spinner loading-lg"></span>
 		</div>
 
-		<div v-else class="overflow-x-auto">
+		<div v-else class="overflow-x-auto rounded-lg">
 			<table class="table table-zebra w-full text-sm">
 				<thead>
 					<tr class="bg-gray-100">
@@ -32,7 +26,7 @@
 							<div class="flex items-center justify-center gap-2">
 								<button v-if="auth.user?.role !== 'viewer'" @click="openEdit('type', type)"
 									class="bg-transparent border-none shadow-none p-0" title="แก้ไข">
-									<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+									<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
 										viewBox="0 0 24 24" stroke="#fbbf24">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
 											d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -40,7 +34,7 @@
 								</button>
 								<button v-if="auth.user?.role !== 'viewer'" @click="openDeleteModal(type)"
 									class="bg-transparent border-none shadow-none p-0" title="ลบ">
-									<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+									<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
 										viewBox="0 0 24 24" stroke="#ef4444">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
 											d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

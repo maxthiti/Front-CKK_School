@@ -24,7 +24,7 @@
                     <tr class="bg-gray-100">
                         <th>รหัส</th>
                         <th>ชื่อ</th>
-                        <th class="w-40">สถานะ</th>
+                        <th class="w-40 text-center">สถานะ</th>
                         <th class="w-48 max-[444px]:hidden">หมายเหตุ</th>
                     </tr>
                 </thead>
@@ -40,10 +40,10 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
-                            <div v-if="localPendingLeaveApprovals[student._id]" class="dropdown dropdown-end">
+                        <td class="text-center align-middle">
+                            <div v-if="localPendingLeaveApprovals[student._id]" class="dropdown dropdown-center">
                                 <button
-                                    class="btn btn-sm btn-ghost w-full justify-between border-0 shadow-none bg-transparent hover:bg-base-200">
+                                    class="btn btn-sm btn-ghost w-full justify-center border-0 shadow-none bg-transparent hover:bg-base-200">
                                     <span class="badge badge-warning gap-2">
                                         รออนุมัติ
                                     </span>
@@ -104,16 +104,12 @@
                                 class="badge badge-warning">
                                 ลา
                             </span>
-                            <div v-else class="dropdown dropdown-end">
+                            <div v-else class="dropdown dropdown-center">
                                 <button
-                                    class="btn btn-sm btn-ghost w-full justify-between border-0 shadow-none bg-transparent hover:bg-base-200">
-                                    <span v-if="localAttendanceData[student._id]?.status === 'absent'"
-                                        class="badge badge-error gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M6 18L18 6M6 6l12 12"></path>
-                                        </svg>
-                                        ขาด
+                                    class="btn btn-sm btn-ghost w-full justify-center border-0 shadow-none bg-transparent hover:bg-base-200">
+                                    <span v-if="displayAttendanceStatus(student._id) === 'absent'"
+                                        class="inline-flex items-center justify-center rounded-full bg-error px-3 py-1 text-xs font-medium leading-none text-error-content whitespace-nowrap">
+                                        ไม่ได้สแกน
                                     </span>
                                     <span v-else class="badge badge-ghost">
                                         ว่าง
@@ -138,16 +134,6 @@
                                                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                             </svg>
                                             ลา
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button type="button" @click.stop.prevent="markAbsent(student._id)">
-                                            <svg class="w-4 h-4 text-error" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M6 18L18 6M6 6l12 12"></path>
-                                            </svg>
-                                            ขาด
                                         </button>
                                     </li>
                                 </ul>
@@ -373,6 +359,28 @@ const formatThaiDate = (dateStr) => {
     return `${d.getDate()} ${thaiMonths[d.getMonth()]} ${d.getFullYear() + 543}`;
 };
 
+const toDateOnly = (value) => {
+    if (!value) return null;
+    const d = new Date(value);
+    if (isNaN(d)) return null;
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+};
+
+const isSelectedDateInPast = computed(() => {
+    const selected = toDateOnly(props.selectedDate);
+    if (!selected) return false;
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return selected < today;
+});
+
+const displayAttendanceStatus = (studentId) => {
+    const status = localAttendanceData.value?.[studentId]?.status;
+    if (status) return status;
+    if (isSelectedDateInPast.value) return 'absent';
+    return '';
+};
+
 const toTimeNow = () => {
     const now = new Date();
     const hh = String(now.getHours()).padStart(2, '0');
@@ -450,16 +458,6 @@ const markPresent = async (studentId) => {
     } finally {
         autoSaving.value = false;
     }
-};
-
-const markAbsent = (studentId) => {
-    if (autoSaving.value) return;
-    localAttendanceData.value[studentId] = {
-        status: 'absent',
-        leaveType: null,
-        remark: '',
-    };
-    emit('update:attendanceData', localAttendanceData.value);
 };
 
 const openLeaveModal = async (studentId, mode = 'create') => {
