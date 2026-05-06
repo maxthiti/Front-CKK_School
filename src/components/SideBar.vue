@@ -341,7 +341,7 @@
                     <ul v-show="isExpanded && isReportOpen" class="ml-4 mt-2 space-y-2">
                         <li>
                             <router-link to="/home/report"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -353,7 +353,7 @@
                         </li>
                         <li>
                             <router-link to="/home/report/late"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/late')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -365,7 +365,7 @@
                         </li>
                         <li>
                             <router-link to="/home/report/leave"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/leave')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -377,7 +377,7 @@
                         </li>
                         <li>
                             <router-link to="/home/report/missed"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/missed')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -389,7 +389,7 @@
                         </li>
                         <li v-if="auth.user?.role !== 'teacher'">
                             <router-link to="/home/report/stranger"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/stranger')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -402,7 +402,7 @@
                         </li>
                         <li>
                             <router-link to="/home/report/at-risk"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/at-risk')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -414,7 +414,7 @@
                         </li>
                         <li>
                             <router-link to="/home/report/stats"
-                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/stats')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
