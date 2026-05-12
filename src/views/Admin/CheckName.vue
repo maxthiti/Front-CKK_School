@@ -264,6 +264,11 @@ const getLeaveStudentKeys = (leaveRequest) => {
     return [user?._id, user?.userid, user].filter(Boolean).map((value) => String(value));
 };
 
+const isDateInLeaveRange = (date, startDate, endDate) => {
+    if (!date || !startDate || !endDate) return false;
+    return date >= startDate && date <= endDate;
+};
+
 const mapDailyStatus = async (studentList, roleType = 'student') => {
     if (!selectedDate.value) {
         attendanceData.value = {};
@@ -278,7 +283,6 @@ const mapDailyStatus = async (studentList, roleType = 'student') => {
     }
 
     if (roleType === 'teacher' && !selectedDepartment.value) {
-        // Load attendance for all teachers without department filter
     }
 
     const studentKeys = new Set();
@@ -345,7 +349,7 @@ const mapDailyStatus = async (studentList, roleType = 'student') => {
             return;
         }
 
-        if (leaveRequest?.start_date !== selectedDate.value) {
+        if (!isDateInLeaveRange(selectedDate.value, leaveRequest?.start_date, leaveRequest?.end_date)) {
             return;
         }
 

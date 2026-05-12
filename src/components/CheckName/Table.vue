@@ -552,7 +552,6 @@ const createLeaveRequest = async () => {
             });
             leaveRequestId = response?.data?._id || response?._id || null;
 
-            // Teacher-created leave from attendance screen should be approved immediately.
             if (leaveRequestId) {
                 await leaveService.approveLeaveRequest(leaveRequestId, 'อนุมัติการลา');
                 leaveStatus = 'approved';
