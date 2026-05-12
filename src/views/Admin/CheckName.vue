@@ -87,6 +87,7 @@ import { PositionService } from '../../api/position';
 import reportApi from '../../api/report';
 import { LeaveService } from '../../api/leave';
 import CheckNameTable from '../../components/CheckName/Table.vue';
+import featureFlags from '../../config/featureFlags';
 import Swal from 'sweetalert2';
 
 const studentService = new StudentService();
@@ -255,7 +256,17 @@ const hasAttendanceOnDate = (student, date) => {
             return false;
         }
 
-        return Array.isArray(attendance?.timeStamps) && attendance.timeStamps.length > 0;
+        if (!Array.isArray(attendance?.timeStamps) || attendance.timeStamps.length === 0) {
+            return false;
+        }
+
+        if (featureFlags.checkName.presentMode === 'any_timestamp') {
+            return attendance.timeStamps.length > 0;
+        }
+
+        return attendance.timeStamps.some(
+            (timeStamp) => timeStamp?.usecase === 'person_confirmation'
+        );
     });
 };
 
