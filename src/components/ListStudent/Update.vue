@@ -49,7 +49,7 @@
                         <input v-model="formData.userid" type="text" class="input input-bordered" required
                             :class="{ 'input-error': useridError }" autocomplete="off" />
                         <label v-if="useridError" class="label"><span class="label-text-alt text-error">{{ useridError
-                                }}</span></label>
+                        }}</span></label>
                     </div>
 
                     <div class="form-control">
@@ -104,6 +104,17 @@
                         <input v-model="formData.rfid" type="text" class="input input-bordered" @input="validateRfid"
                             autocomplete="off" />
                         <label v-if="rfidError" class="label"><span class="label-text-alt text-error">{{ rfidError
+                        }}</span></label>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">เบอร์โทรผู้ปกครอง <span
+                                    class="text-gray-500">(ไม่บังคับ)</span></span></label>
+                        <input v-model="formData.guardian_phone" type="text" class="input input-bordered"
+                            @input="validateGuardianPhone" :class="{ 'input-error': guardianPhoneError }"
+                            autocomplete="off" />
+                        <label v-if="guardianPhoneError" class="label"><span class="label-text-alt text-error">{{
+                            guardianPhoneError
                                 }}</span></label>
                     </div>
 
@@ -144,6 +155,7 @@ const lastNameError = ref('')
 const useridError = ref('')
 const studentId = ref('')
 const rfidError = ref('')
+const guardianPhoneError = ref('')
 
 const formData = ref({
     userid: '',
@@ -152,8 +164,9 @@ const formData = ref({
     last_name: '',
     grade: '',
     classroom: '',
-    picture: null, 
-    rfid: ''
+    picture: null,
+    rfid: '',
+    guardian_phone: ''
 })
 
 const props = defineProps({
@@ -200,6 +213,19 @@ const validateRfid = () => {
     return true
 }
 
+const validateGuardianPhone = () => {
+    if (!formData.value.guardian_phone) {
+        guardianPhoneError.value = ''
+        return true
+    }
+    if (!/^\d+$/.test(formData.value.guardian_phone)) {
+        guardianPhoneError.value = 'เบอร์โทรผู้ปกครองต้องเป็นตัวเลขเท่านั้น'
+        return false
+    }
+    guardianPhoneError.value = ''
+    return true
+}
+
 const isFormValid = computed(() => {
     return (
         formData.value.userid &&
@@ -211,6 +237,7 @@ const isFormValid = computed(() => {
         !firstNameError.value &&
         !lastNameError.value &&
         !rfidError.value &&
+        !guardianPhoneError.value &&
         !fileError.value
     )
 })
@@ -235,8 +262,11 @@ const openModal = async (student) => {
         last_name: parsed.last,
         grade: student.grade || '',
         classroom: student.room || '',
-        picture: null, 
-        rfid: student.rfid !== undefined && student.rfid !== null ? String(student.rfid) : ''
+        picture: null,
+        rfid: student.rfid !== undefined && student.rfid !== null ? String(student.rfid) : '',
+        guardian_phone: student.guardian_phone !== undefined && student.guardian_phone !== null
+            ? String(student.guardian_phone)
+            : ''
     }
     currentImage.value = getPictureUrl(student.picture) || ''
     previewImage.value = ''
@@ -245,6 +275,7 @@ const openModal = async (student) => {
     lastNameError.value = ''
     useridError.value = ''
     rfidError.value = ''
+    guardianPhoneError.value = ''
 
     if (student.picture) {
         try {
@@ -278,6 +309,7 @@ const openModal = async (student) => {
 const closeModal = () => {
     modalRef.value?.close()
     rfidError.value = ''
+    guardianPhoneError.value = ''
 }
 
 const handleGradeChange = () => {
@@ -369,6 +401,7 @@ const removeImage = () => {
 const handleSubmit = async () => {
     validateFirstName(); validateLastName();
     if (!validateRfid()) return;
+    if (!validateGuardianPhone()) return;
     useridError.value = '';
     if (!isFormValid.value) {
         const { default: Swal } = await import('sweetalert2')
