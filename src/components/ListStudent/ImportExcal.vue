@@ -28,10 +28,11 @@
                     <input type="file" accept="image/*" multiple @change="onImagesChange"
                         class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
                     <p v-if="imageFiles.length" class="text-xs text-success mt-1">รูปภาพที่เลือก: {{ imageFiles.length
-                        }} ไฟล์</p>
+                    }} ไฟล์</p>
                     <p class="text-xs text-gray-500 mt-1">กรุณาตั้งชื่อไฟล์รูปภาพให้ตรงกับคอลัมน์ ชื่อรูป เช่น
                         <b>image001.jpg</b>
-                        เพื่อให้ระบบแมปข้อมูลอัตโนมัติ</p>
+                        เพื่อให้ระบบแมปข้อมูลอัตโนมัติ
+                    </p>
                 </div>
             </div>
 
@@ -307,6 +308,13 @@ async function handleImport() {
             return val;
         }
 
+        function cleanGuardianPhone(val) {
+            if (val === undefined || val === null) return '';
+            const text = String(val).trim();
+            if (!text || text === '-') return '';
+            return text;
+        }
+
         const importedStudents = [];
         const failedStudents = [];
         for (const student of previewData.value) {
@@ -320,7 +328,7 @@ async function handleImport() {
             const cleanedStudent = {
                 ...student,
                 last_name: cleanLastName(student.last_name),
-                guardian_phone: (student.guardian_phone || '').toString().trim()
+                guardian_phone: cleanGuardianPhone(student.guardian_phone)
             };
 
             const imageNameKey = (cleanedStudent.imageName || '')
