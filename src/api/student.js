@@ -199,4 +199,28 @@ export class StudentService {
       throw error;
     }
   }
+
+  async deleteLineStudent({ lineuser_id, userid }) {
+    try {
+      this.token = localStorage.getItem("token");
+      const config = {
+        method: "delete",
+        maxBodyLength: Infinity,
+        url: `${this.baseUrl}line/students`,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.token}`,
+        },
+        data: {
+          lineuser_id,
+          userid,
+        },
+      };
+      const response = await axios.request(config);
+      return response.data;
+    } catch (error) {
+      console.error("Delete line student error:", error);
+      throw error;
+    }
+  }
 }

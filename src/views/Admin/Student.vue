@@ -101,7 +101,7 @@
 
         <StudentTable :students="filteredStudents" :loading="loading" :currentPage="currentPage"
             :itemsPerPage="itemsPerPage.value" @edit="openUpdateModal" @delete="openDeleteModal"
-            @reset="openRePasswordModal" @detail="openDetailModal" />
+            @reset="openRePasswordModal" @detail="openDetailModal" @refresh="fetchStudents" />
         <CreateModal ref="createModalRef" :classrooms="classrooms" @success="handleCreateSuccess" />
         <ImportExcalModal ref="importModalRef" @success="handleImportSuccess" />
         <UpdateModal ref="updateModalRef" :classrooms="classrooms" @success="handleUpdateSuccess" />
@@ -208,6 +208,14 @@ const mapStudentRow = (student) => ({
     guardian_phone: student.guardian_phone || student.parent_phone || '',
     guadians: normalizeGuardian(student.guadians),
     guardians: normalizeGuardian(student.guardians),
+    lineuser_id:
+        student.lineuser_id ||
+        student.line_user_id ||
+        student.guadians?.lineuser_id ||
+        student.guadians?.line_user_id ||
+        student.guardians?.lineuser_id ||
+        student.guardians?.line_user_id ||
+        '',
     score: Number.isFinite(Number(student.score)) ? Number(student.score) : 100,
     phone: student.phone || '-',
     picture: normalizeImagePath(student.picture),

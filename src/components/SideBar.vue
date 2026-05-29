@@ -238,7 +238,7 @@
                                 <span class="text-sm">จัดการคะแนน</span>
                             </router-link>
                         </li>
-                        <li v-if="auth.user?.role !== 'teacher'">
+                        <!-- <li v-if="auth.user?.role !== 'teacher'">
                             <router-link to="/home/leave"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
                                 :class="submenuClass('/home/leave')">
@@ -249,7 +249,7 @@
                                 </svg>
                                 <span class="text-sm">จัดการวันลา</span>
                             </router-link>
-                        </li>
+                        </li> -->
                         <li>
                             <router-link to="/home/checkname"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
@@ -260,6 +260,18 @@
                                         d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                 </svg>
                                 <span class="text-sm">เช็คชื่อ</span>
+                            </router-link>
+                        </li>
+                        <li v-if="featureFlags.menu.enableUniformInspection">
+                            <router-link to="/home/uniform-inspection"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-warning/20 transition-colors"
+                                :class="submenuClass('/home/uniform-inspection')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="text-sm">ตรวจเครื่องแบบ</span>
                             </router-link>
                         </li>
                     </ul>
@@ -376,6 +388,18 @@
                             </router-link>
                         </li>
                         <li>
+                            <router-link to="/home/report/activity"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
+                                :class="submenuClass('/home/report/activity')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>กิจกรรม</span>
+                            </router-link>
+                        </li>
+                        <li>
                             <router-link to="/home/report/missed"
                                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
                                 :class="submenuClass('/home/report/missed')">
@@ -398,6 +422,18 @@
                                         d="M12 8v4m0 4h.01" />
                                 </svg>
                                 <span>สแกนไม่สำเร็จ</span>
+                            </router-link>
+                        </li>
+                        <li v-if="featureFlags.menu.enableReportUniformInspection">
+                            <router-link to="/home/report/uniform-inspection"
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-warning/20 transition-colors text-sm"
+                                :class="submenuClass('/home/report/uniform-inspection')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4m0 4h.01" />
+                                </svg>
+                                <span>ตรวจระเบียบ</span>
                             </router-link>
                         </li>
                         <li>
@@ -455,6 +491,7 @@
 import { useRoute } from 'vue-router'
 import { computed, ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import featureFlags from '../config/featureFlags'
 const auth = useAuthStore()
 
 const route = useRoute()

@@ -1,5 +1,4 @@
 export default {
-  
   // ฟีเจอร์สำหรับตารางเข้า-ออก
   attendance: {
     enableLineupColumn: false, // true = แสดงคอลัมน์เข้าแถว, false = ซ่อน
@@ -17,4 +16,9 @@ export default {
     enableUseCase: true, // true = แสดง Use Case, false = ซ่อน
   },
 
+  // ฟีเจอร์สำหรับเมนู
+  menu: {
+    enableUniformInspection: true, // เมนูตรวจเครื่องแบบ
+    enableReportUniformInspection: true, // เมนูรายงานตรวจระเบียบ
+  },
 };

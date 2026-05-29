@@ -86,6 +86,7 @@ import { DepartmentService } from '../../api/department';
 import { PositionService } from '../../api/position';
 import reportApi from '../../api/report';
 import { LeaveService } from '../../api/leave';
+import { ActivityService } from '../../api/activity';
 import CheckNameTable from '../../components/CheckName/Table.vue';
 import featureFlags from '../../config/featureFlags';
 import Swal from 'sweetalert2';
@@ -96,6 +97,7 @@ const classRoomService = new ClassRoomService();
 const departmentService = new DepartmentService();
 const positionService = new PositionService();
 const leaveService = new LeaveService();
+const activityService = new ActivityService();
 const residentRole = localStorage.getItem('residentRole') || '';
 const teacherGrade = localStorage.getItem('grade') || '';
 const teacherClassroom = localStorage.getItem('classroom') || '';
@@ -280,6 +282,32 @@ const isDateInLeaveRange = (date, startDate, endDate) => {
     return date >= startDate && date <= endDate;
 };
 
+const normalizeDateString = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return value;
+    }
+    const d = new Date(value);
+    if (isNaN(d)) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const getActivityStudentKeys = (activity) => {
+    const user = activity?.user_id;
+    return [user?._id, user?.userid, user?.id, user].filter(Boolean).map((value) => String(value));
+};
+
+const isDateInActivityRange = (date, startDate, endDate) => {
+    if (!date || !startDate || !endDate) return false;
+    const start = normalizeDateString(startDate);
+    const end = normalizeDateString(endDate);
+    if (!start || !end) return false;
+    return date >= start && date <= end;
+};
+
 const mapDailyStatus = async (studentList, roleType = 'student') => {
     if (!selectedDate.value) {
         attendanceData.value = {};
@@ -321,7 +349,7 @@ const mapDailyStatus = async (studentList, roleType = 'student') => {
         attendanceParams.department = selectedDepartment.value;
     }
 
-    const [attendanceResponse, leaveResponse] = await Promise.all([
+    const [attendanceResponse, leaveResponse, activityResponse] = await Promise.all([
         reportApi.getAttendanceReport(attendanceParams),
         leaveService.getLeaveRequests({
             start_date: selectedDate.value,
@@ -329,12 +357,15 @@ const mapDailyStatus = async (studentList, roleType = 'student') => {
             status: '',
             user_id: '',
         }),
+        activityService.getActivities(selectedDate.value, selectedDate.value),
     ]);
 
     const attendanceRows = attendanceResponse?.data || [];
     const leaveRows = leaveResponse?.data || [];
+    const activityRows = activityResponse?.data || [];
     const presentKeys = new Set();
     const leaveByStudentKey = new Map();
+    const activityByStudentKey = new Map();
 
     attendanceRows.forEach((student) => {
         if (!hasAttendanceOnDate(student, selectedDate.value)) {
@@ -375,44 +406,84 @@ const mapDailyStatus = async (studentList, roleType = 'student') => {
         });
     });
 
+    activityRows.forEach((activity) => {
+        if (!isDateInActivityRange(selectedDate.value, activity?.activity_date_start, activity?.activity_date_end)) {
+            return;
+        }
+
+        getActivityStudentKeys(activity).forEach((key) => {
+            if (!activityByStudentKey.has(key)) {
+                activityByStudentKey.set(key, activity);
+            }
+        });
+    });
+
     const nextAttendanceData = {};
     const nextPendingLeaveApprovals = {};
 
     studentList.forEach((student) => {
         const keys = [student?._id, student?.userid, student?.id].filter(Boolean).map((value) => String(value));
-        const isPresent = keys.some((key) => presentKeys.has(key));
+        const activity = keys.map((key) => activityByStudentKey.get(key)).find(Boolean);
+        const previousActivity = activity
+            ? {
+                activityId: activity?._id || null,
+                activityName: activity?.activity_name || 'มีกิจกรรม',
+                activityDateStart: normalizeDateString(activity?.activity_date_start),
+                activityDateEnd: normalizeDateString(activity?.activity_date_end),
+                startTime: activity?.start_time || '',
+                endTime: activity?.end_time || '',
+                location: activity?.location || '',
+                remark: activity?.remark || '',
+            }
+            : null;
 
+        const leaveRequest = keys.map((key) => leaveByStudentKey.get(key)).find(Boolean);
+        if (leaveRequest) {
+            const leaveStatus = String(leaveRequest?.status || '').toLowerCase();
+            const leaveTypeName = leaveRequest?.leave_type_id?.name || 'ลา';
+            const reason = leaveRequest?.reason || '';
+
+            nextAttendanceData[student._id] = {
+                status: 'leave',
+                leaveType: leaveTypeName,
+                remark: reason,
+                leaveRequestId: leaveRequest?._id || null,
+                leaveStatus,
+                previousActivity,
+            };
+
+            if (pendingLeaveStatuses.has(leaveStatus)) {
+                nextPendingLeaveApprovals[student._id] = {
+                    requestId: leaveRequest?._id || null,
+                    leaveType: leaveTypeName,
+                    reason,
+                    previousActivity,
+                };
+            }
+            return;
+        }
+
+        if (activity) {
+            nextAttendanceData[student._id] = {
+                status: 'activity',
+                activityId: activity?._id || null,
+                activityName: activity?.activity_name || 'มีกิจกรรม',
+                activityDateStart: normalizeDateString(activity?.activity_date_start),
+                activityDateEnd: normalizeDateString(activity?.activity_date_end),
+                startTime: activity?.start_time || '',
+                endTime: activity?.end_time || '',
+                location: activity?.location || '',
+                remark: activity?.remark || '',
+            };
+            return;
+        }
+
+        const isPresent = keys.some((key) => presentKeys.has(key));
         if (isPresent) {
             nextAttendanceData[student._id] = {
                 status: 'present',
                 leaveType: null,
                 remark: '',
-            };
-            return;
-        }
-
-        const leaveRequest = keys.map((key) => leaveByStudentKey.get(key)).find(Boolean);
-        if (!leaveRequest) {
-            return;
-        }
-
-        const leaveStatus = String(leaveRequest?.status || '').toLowerCase();
-        const leaveTypeName = leaveRequest?.leave_type_id?.name || 'ลา';
-        const reason = leaveRequest?.reason || '';
-
-        nextAttendanceData[student._id] = {
-            status: 'leave',
-            leaveType: leaveTypeName,
-            remark: reason,
-            leaveRequestId: leaveRequest?._id || null,
-            leaveStatus,
-        };
-
-        if (pendingLeaveStatuses.has(leaveStatus)) {
-            nextPendingLeaveApprovals[student._id] = {
-                requestId: leaveRequest?._id || null,
-                leaveType: leaveTypeName,
-                reason,
             };
         }
     });
