@@ -64,7 +64,6 @@ axios.interceptors.response.use(
   }
 );
 
-
 // ป้องกันการคลิกขวาบนรูปภาพทั่วทั้งหมด
 document.addEventListener('contextmenu', (e) => {
     if (e.target.tagName === 'IMG') {
